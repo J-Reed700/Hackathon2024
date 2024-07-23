@@ -1,0 +1,18 @@
+.card-container {
+   padding: 1em;
+   display: flex;
+   flex-direction: column;
+   gap: 0.5em;
+}
+
+.card-container--info {
+   background-color: #ECFAFA;
+   border: 2px solid #00C9E4;
+   border-radius: 12px;
+}
+
+.card-container--error {
+   background-color: #FFF1ED;
+   border: 2px solid #FF360B;
+   border-radius: 12px;
+}
