@@ -1,0 +1,12 @@
+.gradient-box {
+   width: 750px;
+   height: 100px;
+   border-radius: 10px;
+   background: linear-gradient(to right, #EBD2FF, #E5FCFF);
+
+   display: flex;
+   justify-content: space-around;
+   align-items: center;
+
+   padding: 1em;
+}

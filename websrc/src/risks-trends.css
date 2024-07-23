@@ -1,0 +1,36 @@
+.risks-trends-container {
+   flex: 1;
+   
+   padding: 2em;
+   font-size: 16px;
+   background-color: #F4F7FA;
+   color: #212121;
+}
+
+.greeting {
+   font-size: 24px;
+}
+
+.cards {
+   display: grid;
+   grid-template-columns: 1fr 1fr;
+   column-gap: 1em;
+   
+   margin-top: 2em;
+   max-width: 1000px;
+}
+
+.card-title {
+   display: flex;
+   gap: 0.25em;
+   
+   font-size: 24px;
+   font-weight: 700;
+   color: #595959;
+   margin-bottom: 0.25em;
+}
+
+.risks-trends-grid {
+   margin-top: 2em;
+   max-width: 1250px;
+}
