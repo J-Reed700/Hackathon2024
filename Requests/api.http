@@ -1,0 +1,4 @@
+GET http://localhost:5001/consultant/test
+
+###
+POST http://localhost:5001/consultant

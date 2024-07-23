@@ -8,6 +8,8 @@ services:
     container_name: chat-bt-api
     depends_on: ["mongo"]
     networks: ["backend"]
+    env_file:
+      - .env
     environment:
       RUN_MODE: "local"
       FLASK_DEBUG: 1

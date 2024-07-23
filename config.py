@@ -16,7 +16,7 @@ class Config:
     HYDE_MODEL = 'gpt-4o'
 
 class LocalConfig(Config):
-    load_dotenv('.env.local')
+    load_dotenv()
     DEBUG = True
     SECRET_KEY = 'local'
     PINECONE_API_KEY = '64ce72ee-9a1f-435b-8645-75a89d92d137'
