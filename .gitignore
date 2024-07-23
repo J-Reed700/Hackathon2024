@@ -1,0 +1,19 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs/BTAI/FileContentIndex
+/.vs/slnx.sqlite
+/.vs/VSWorkspaceState.json
+.venvs
+env/
+__pycache__/*
+**/__pycache__/*
+auxiliary_apps/pinecone_utility_app/conversion.log
+auxiliary_apps/pinecone_utility_app/output.json
+*.swp
+/.vs/ChatBT
+/.vs/slnx.sqlite-journal
+.env
+.env.local
+/.vs/BTAI/v17/.wsuo

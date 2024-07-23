@@ -1,0 +1,48 @@
+trigger:
+  tags:
+    include:
+      - 'v*'
+  branches:
+    exclude:
+      - '*'
+pr:
+  branches:
+    exclude:
+      - '*'
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+jobs:
+- job: Build 
+  variables:
+    repo: $[ lower(variables['Build.Repository.Name']) ]
+  steps:
+  - task: PowerShell@2
+    displayName: Set Build Version
+    inputs:
+      targetType: inline
+      script: |
+        $tagName = "$(Build.SourceBranch)"
+        # Using 11 here to trim /refs/tags/v from the ref to get the version
+        $version = $tagName.Substring(11, ($tagName.length - 11))
+        Write-Host "##vso[build.updatebuildnumber]$version"
+
+  - task: Docker@2
+    inputs:
+      tags: '$(Build.buildnumber)'
+      repository: $(repo)
+      command: build
+      Dockerfile: '**/Dockerfile'
+      buildContext: "."
+      arguments: "--build-arg RUN_MODE=prod"
+
+  - task: ECRPushImage@1
+    inputs:
+      awsCredentials: 'AWS_ECR_PROD'
+      regionName: 'us-east-1'
+      imageSources: 'imagename'
+      sourceImageName: $(repo)
+      sourceImageTag: '$(Build.buildnumber)'
+      repositoryName: $(repo)
+      pushTag: '$(Build.buildnumber)'

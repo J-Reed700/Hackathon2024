@@ -1,0 +1,11 @@
+trigger:
+- develop
+
+resources:
+  repositories:
+    - repository: templates
+      type: git
+      name: 'BigTime-Operations/pipeline-templates'
+
+stages:
+- template: 'dev-docker-cd.yml@templates'

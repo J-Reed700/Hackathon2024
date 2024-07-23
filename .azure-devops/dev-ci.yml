@@ -1,0 +1,24 @@
+trigger: none
+pr:
+- develop
+
+resources:
+  repositories:
+    - repository: templates
+      type: git
+      name: 'BigTime-Operations/pipeline-templates'
+
+jobs:
+- template: 'dev-docker-ci.yml@templates'
+- job: 'RunUnitTests'
+  displayName: 'Run Unit Tests'
+  steps:
+  - script: |
+      python3 -m pip install --user pipx
+      python3 -m pipx ensurepath
+      pipx install poetry==1.8.2
+    displayName: 'Install Poetry'
+  - script: |
+      poetry install
+      poetry run pytest tests
+    displayName: 'Run Unit Tests'

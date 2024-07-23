@@ -1,0 +1,1070 @@
+article_title,url,updated_at,content,tokens
+BigTime API Overview,https://iq.bigtime.net/BigtimeData/api/v2/Help/Overview,2024-04-10T17:00:00Z,"Topic: BigTime API Overview
+Solution: The BigTime API is a REST-based service that allows you to access and manipulate your BigTime data. It provides a simple way to integrate your information with other tools and programs. The API supports both XML and JSON data formats.
+
+Getting Started with the BigTime API
+To access your data, you need to create a session by authenticating with your username and password. The session token and firm ID returned by the API can be used for subsequent API calls. You can retrieve information from BigTime by making GET requests using the URLs provided in the API documentation. To update your BigTime data, you can make POST requests with valid requests conforming to the field names in the object definitions.
+
+User-Level Authentication
+Most API consumers implement user-level authentication to restrict data access based on the user's access level. However, in some cases, you may need access to firm-level data. To create a firm-level session, your system administrator needs to create a firm access token. This token should be treated with the same security measures as a user's password.
+
+Accessing the API with a Firm-Level Token
+To access the API with a firm-level token, you need to establish a firm-level session by POSTing your token and firm ID to the appropriate URL. The firm session token and firm ID should be included in the HTTP headers for subsequent API calls.
+
+API Keys and Permanent Sessions
+API keys act as permanent sessions for accessing your firm's data and mimic the security rights of the user who created them. They can be used to update data using the URLs provided in the API documentation.
+
+Data Formats
+The BigTime API supports both JSON and XML data formats. For XML requests, send ""application/xml"" in the Accept and Content-Type headers. For JSON requests, send ""application/json"" instead.
+
+API Limits and Throttling
+To ensure responsible usage of the API, BigTime limits API calls to 30 per minute per session token. If this limit is exceeded, you will receive an HTTP 503 status code. The Retry-After header can be used to determine the number of seconds until the throttle is lifted.",433
+API Login and Session Management in BigTime,https://iq.bigtime.net/BigtimeData/api/v2/Help/Overview,2024-04-10T17:00:00Z,"Topic: API Login and Session Management in BigTime
+
+Solution: 
+
+The BigTime API provides functionality for logging in and managing user sessions. This allows developers to authenticate users and perform actions on their behalf. 
+
+To log in using the API, you can use the `/v2/Session` service. BigTime supports session-based name/password authentication, and you'll use your own BigTime login credentials to validate your user session. 
+
+To establish a new session, you need to make a POST request to `/session` with the following information: 
+- UserId: Your BigTime login email
+- Pwd: Your BigTime login password
+
+Once the post is validated, you'll receive a valid response from the BigTime server containing the following information: 
+- firm: The unique ID of the firm to which the session is attached
+- staffsid: The user's staffSid within the firm
+- userid: The user's global UserId
+- token: The unique session token used to access the rest of the API
+
+You can use the `firm` and `token` values for subsequent API calls to authenticate and authorize the user. 
+
+API tokens expire after 24 hours, so if your session is expired, any calls you make to the BigTime API will receive an HTTP 401 error. To overcome this error, you can re-establish your session by making a new POST request to `/session` to get a new set of tokens. 
+
+Additionally, you can create a firm-specific session by including the `firm` parameter in your session POST request. This allows you to connect a user to a specific firm they belong to. 
+
+To get a list of firms for a specific user, you can make a GET request to `/session/firms`. This requires a valid session token. The response will be an array of valid firm IDs. 
+
+You can also set a user's timezone by making a POST request to `/session/timezone/{timezone}`. This allows you to receive server timer data in the user's timezone. 
+
+To validate a staffer's rights before calling protected areas of the API, you can use the `/session/IsPermitted/{right}` endpoint. This will return a true/false value indicating if the staffer has access to the specified right. 
+
+Finally, if you have a valid productId/code from BigTime, you can use the `/session/provision` endpoint to create and provision new users and firms. This endpoint is typically used by BigTime partners. 
+
+For more details on the API endpoints and their parameters, you can refer to the BigTime API documentation.",521
+API Picklist,https://iq.bigtime.net/BigtimeData/api/v2/Help/Overview,2024-04-10T17:00:00Z,"Topic: Picklist API
+
+Solution: The BigTime Picklist API provides a simple way to retrieve lists of elements in the system that can be used in various parts of the application, such as time or expense entries. This API is read-only and returns items that the currently logged in user is allowed to see.
+
+Making Picklist API Calls:
+To make a picklist API call, you need to make a GET request to the specific URL for the desired picklist. The data returned will be in the format of ""ID+NAME"". For example, to retrieve a list of projects, you would make a GET request to the /picklist/projects URL.
+
+List of Picklist URLs:
+- /picklist/projects: Returns a list of projects that the specified user has rights to log time against.
+- /picklist/clients: Returns a list of customer records for the system.
+- /picklist/staff: Returns a list of staffers that exist in a firm.
+- /picklist/LaborCodes: Returns a list of active labor codes against which time can be logged.
+- /picklist/ExpenseCodes: Returns a list of active expense codes against which expenses can be logged.
+- /picklist/AllTasksByProject/{projectid}: Returns a list of tasks/engagements linked to a specific project.
+- /picklist/EstimatesByProject/{projectid}: Returns a list of budget items linked to a specific project.
+- /picklist/QBClasses: Returns a list of QuickBooks classes used for tracking time and expenses.
+- /picklist/PayrollItems: Returns a list of payroll items that can be used for logging time.
+- /picklist/CreditCards/{StaffSid}: Returns a list of credit cards that the current user has rights to see.
+- /picklist/Timezones: Returns a list of valid timezone values for the firm.
+- /picklist/FieldValues/{FieldEnum}: Returns a list of acceptable values for specific fields in the system.
+
+Creating a New Expense Code:
+To create a new expense code, you can make a POST request to the /picklist/ExpenseCode URL. The required fields for creating an expense code are ""Nm"" (name) and ""Code"" (code used to identify the expense). Additional fields can be included in the POST request to provide more details about the expense code.
+
+Field Details:
+The following fields are available for the Expense Code object:
+- Nm: Name of the expense code (required)
+- Code: Code used to identify the expense (required)
+- Desc: Description of the expense code
+- IsUnit: Indicates if expenses against this category should be entered per unit
+- UOM: Unit of Measure for the expense code
+- IsTaxable: Indicates if sales tax is collected on this item
+- TaxRateSid: Default tax rate used for taxable items
+- BaseCost: Rate at which an item will be billed through to customers
+- SalePrice: Rate at which an item will be billed through to customers
+- Markup: Used to calculate CostBill from CostOK
+- IsServiceFee: Indicates if there is a service fee associated with the code
+- IsReimb: Indicates if the expense is eligible for reimbursement
+- IsInactive: Indicates if the code is inactive
+- SortOrd: Sort order of the code
+- AcctSysSid: Link to an account item
+- AcctSysSid2: Secondary link to an account item
+
+Note: The picklist API returns results in sorted order based on the system defaults and only includes items that the logged in user has rights to see. Inactive or completed items are not included in the results.
+
+For more information and examples, please refer to the BigTime API documentation.",763
+Timesheet and Timers API Documentation,https://iq.bigtime.net/BigtimeData/api/v2/Help/Overview,2024-04-10T17:00:00Z,"Topic: Timesheet and Timers API Documentation
+
+Solution: The BigTime API provides developers with access to various endpoints for manipulating timesheet data and managing timers. This documentation will guide you through the different endpoints and their functionalities.
+
+API Login:
+To access the BigTime API, you need to login using your API Key.
+
+Time Entry API:
+The Time Entry API allows you to query, create, or edit a user's time entry data without relying on the BigTime web pages. You can manipulate time entries as long as they have not been submitted by the user. Once an entry is submitted, it can no longer be edited by a non-admin user.
+
+Important Notes:
+- ""Submitted"" entries cannot be edited or deleted.
+- Time Entry ""ID"" values can change as they move through the system.
+- To check if an entry has been submitted, check the IsSubmitted flag.
+- Retrieving time entry data for a specific date range can be done using the /time/Sheet/{staffsid} endpoint.
+- Retrieving time entry data for a specific project and date range can be done using the /time/ByProject/{Id} endpoint.
+- You can pull the details of a specific time entry using the /time/{sid} endpoint.
+- Creating a new time entry can be done using the /time endpoint.
+- Updating existing time entries can be done using the /time/{sid} endpoint.
+- Deleting a time entry can be done using the /time/{sid} endpoint.
+
+Timer API:
+The Timer API allows you to track work in progress using timers. Timers can be started, paused, and converted into time entries.
+
+Important Notes:
+- Timers don't have dates and are considered works in progress.
+- Only one timer can be actively accumulating time at any given moment.
+- You can retrieve a list of active timers using the /timer/sheet/{staffsid} endpoint.
+- You can retrieve the total number of timer hours using the /timer/total/{staffsid} endpoint.
+- You can retrieve the details of a specific timer using the /timer/item/{sid} endpoint.
+- You can start or pause a timer using the /timer/start/{sid} and /timer/pause/{sid} endpoints.
+- You can convert a timer into a time entry using the /timer/SaveAsTime/{sid} endpoint.
+- You can close all of a user's timers at once using the /timer/CloseAllTimers/{staffsid} endpoint.
+
+Additional Endpoints:
+- You can retrieve the weekly start date containing a specific date using the /time/periodContainingDate/{yyyyMMdd} endpoint.
+- You can retrieve a summary of timesheet data by date using the /time/TotalByDay/{staffsid} endpoint.
+- You can update an audit log entry/comment using the /time/AuditLogDetail endpoint.
+
+Please refer to the detailed API documentation for more information on each endpoint and their parameters.
+
+Note: The API documentation provided here is a summary of the available endpoints and their functionalities. For complete details, please refer to the official BigTime API documentation.",620
+Expense Entry API,https://iq.bigtime.net/BigtimeData/api/v2/Help/Overview,2024-04-10T17:00:00Z,"Topic: Expense Entry API
+
+Solution: The BigTime Expense Entry API provides access to user's expense report data, allowing you to create programs and web services that query, create, or edit a user's data without relying on the BigTime web pages. This API allows you to perform various operations such as retrieving expense entries, filtering entries, creating new entries, updating existing entries, deleting expenses, and more.
+
+API Endpoints:
+
+1. Retrieving Entries by Expense Report:
+   - HTTP GET: /expense/report/{rptSid}?staffsid={staffsid}&{view}=Basic
+   - Parameters:
+     - RptSid (Numeric): Specifies the expense report for which you would like to return details. You can get a list of all unsubmitted expenses by passing a rptSid of ""0.""
+     - StaffSid (Numeric): Specifies an alternate staffsid for whom you would like to pull expense details.
+     - View (Basic/Detailed): Specifies the level of detail for the returned data.
+
+2. Retrieving Entries by Filter:
+   - HTTP POST: /expense/reportbyfilter
+   - Parameters:
+     - Mindate (DateTime): Specifies the minimum expense entry input date.
+     - Maxdate (DateTime): Specifies the maximum expense entry input date.
+     - Staffsids (List of Numeric): Specifies the SID of the staff member who entered the expense.
+     - Projectsids (List of Numeric): Specifies the SID of the project associated with the expense entry.
+     - View (Basic/Detailed): Specifies the level of detail for the returned data.
+     - Showapproval (True/False): Includes a property on each ExpenseEntry in the results indicating if the logged in user is permitted to approve the expense.
+
+3. Pulling the Detail for a Specific Expense Entry:
+   - HTTP GET: /expense/detail/{sid}
+
+4. Creating a New Expense Entry:
+   - HTTP POST: /expense/detail
+   - POST CONTENT: {""staffsid"": 0, ""projectsid"":0, ""catsid"":0, ""dt"":""2023-01-01"", ""costIN"": 1.25}
+
+5. Updating Existing Expense Entries:
+   - HTTP POST: /expense/detail/{sid}
+   - POST CONTENT: {CostIN: 99.95, notes: ""this is an updated note...""}
+
+6. Deleting an Expense:
+   - HTTP DELETE: /expense/detail/{sid}
+
+7. Pulling a List of Active Expense Reports:
+   - HTTP GET: /expense/reports?{showAll=true}
+
+8. Submitting a User's Expenses:
+   - HTTP GET: /expense/submit/{id}
+
+9. Pulling the Receipt Attached to a Specific Expense:
+   - HTTP GET: /expense/receipt/{sid}
+
+10. Uploading a New Receipt for a Specific Expense:
+    - HTTP POST: /expense/receipt/{sid}
+    - POST CONTENT: <FileUpload>
+
+11. Deleting a Receipt File:
+    - HTTP DELETE: /expense/receipt/{sid}
+
+For more details on the API endpoints and their parameters, please refer to the BigTime API documentation.",636
+Project API,https://iq.bigtime.net/BigtimeData/api/v2/Help/Overview,2024-04-10T17:00:00Z,"Topic: BigTime Project API
+Solution: The BigTime Project API provides access to project data and allows users to perform various actions such as getting a listing of projects, pulling the details of a specific project, creating a new project, updating existing projects, and deleting a project.
+
+Getting a listing of ""My Projects"":
+To retrieve a listing of project data, you can submit a simple query to the project API. The API will return the ""simple"" view of the project listings page. No additional parameters are required or supported for this request.
+
+HTTP GET: /project?{ShowInactive=true}
+HEADERS: X-Auth-Token:{YourAPIToken}, X-Auth-Realm:{YourFirmId}
+HTTP RESPONSE: An array of Project objects in the ""basic"" view.
+
+Pulling the detail for a specific project:
+To retrieve the details associated with a specific project, you can use a simple GET request. By default, the API will return the details in the ""basic"" view. However, if you pass TRUE to the ShowAllContacts parameter, all of the project's other contacts will be returned in addition to the primary and billing contacts.
+
+HTTP GET: /project/detail/{systemid}?View={Detailed/Basic}&{ShowAllContacts=True/False}
+HEADERS: X-Auth-Token:{YourAPIToken}, X-Auth-Realm:{YourFirmId}
+HTTP RESPONSE: An array of Project objects in the specified view.
+
+Creating a NEW project:
+To create a new project, you can send a POST request to the /project/detail endpoint. Only the fields listed in the Update view should be included in the request body. Any other data will be ignored. The required (*) fields must be included in the request.
+
+HTTP POST: /project/detail
+HEADERS: X-Auth-Token:{YourAPIToken}, X-Auth-Realm:{YourFirmId}
+POST CONTENT: {Nm: ""My Test Project"", ProjectCode: ""TEST-1""}
+HTTP RESPONSE: The updated ProjectDetail object.
+
+Creating a NEW project with a template ID:
+To create a new project using a template ID, you can send a POST request to the /project/detail endpoint. Only the fields listed in the Update view should be included in the request body. Any other data will be ignored. The template ID must be greater than zero.
+
+HTTP POST: /project/detail
+HEADERS: X-Auth-Token:{YourAPIToken}, X-Auth-Realm:{YourFirmId}
+POST CONTENT: {TemplateID: ""123""}
+HTTP RESPONSE: The updated ProjectDetail object.
+
+Updating Existing Projects:
+To update an existing project, you can send a POST request to the /project/detail/{sid} endpoint. Only the fields listed in the Update view should be included in the request body. Any other data will be ignored. You cannot remove or ""zero-out"" any of the required (*) fields.
+
+HTTP POST: /project/detail/{sid}
+HEADERS: X-Auth-Token:{YourAPIToken}, X-Auth-Realm:{YourFirmId}
+POST CONTENT: {Nm: ""My Test Project"", ProjectCode: ""TEST-1""}
+HTTP RESPONSE: The updated ProjectDetail object.
+
+Deleting a Project:
+To delete a project, you can send a DELETE request to the /project/detail/{sid} endpoint. However, the API will not allow you to delete a project that has transaction data attached to it. In such cases, you should mark the project as INACTIVE instead by running an update.
+
+HTTP DELETE: /project/detail/{sid}
+HEADERS: X-Auth-Token:{YourAPIToken}, X-Auth-Realm:{YourFirmId}
+HTTP RESPONSE: A successful delete will return a 200 status code.",761
+Project Contacts API,https://iq.bigtime.net/BigtimeData/api/v2/Help/Overview,2024-04-10T17:00:00Z,"Topic: Project Contacts API
+
+Solution: The Project Contacts API allows you to interact with a project's contacts in the BigTime program. You can perform various actions such as getting a listing of a project's contacts, pulling the details for a specific contact, creating a new contact, updating existing contacts, and deleting a contact.
+
+Getting a listing of a project's contacts:
+To retrieve a listing of contact data for a project, you can make a simple GET request to the following endpoint:
+HTTP GET: /Project/Contacts
+No additional parameters are required. The response will be an array of Contact objects in the ""basic"" view.
+
+Pulling the detail for a specific contact:
+To retrieve the details associated with a specific contact, you can make a GET request to the following endpoint:
+HTTP GET: /project/contact/{SystemId}?ProjectSid={ProjectSID}&ShowAll=True/False
+Replace {SystemId} with the system ID of the contact and {ProjectSID} with the project SID. By default, the response will include the fields in the ""basic"" view. If you pass TRUE to the ShowAll parameter, all linked project records will be returned. Otherwise, at most 50 linked projects will be returned.
+
+Creating a new contact:
+To create a new contact, you can make a POST request to the following endpoint:
+HTTP POST: /project/Contact/{SystemId}
+Include the required fields in the post content, such as ProjectSid and FName. You can also include any of the Update fields, but only the fields listed in the Update view will be considered. Any other data will be ignored. Validation errors will return a 400 error, and an invalid permission will return a 405 error.
+
+Updating existing contacts:
+To update an existing contact, you can make a POST request to the following endpoint:
+HTTP POST: /project/contact/{SystemId}
+Include the required fields in the post content, such as ProjectSid and FName. You can also include any of the Update fields, but only the fields listed in the Update view will be considered. Any other data will be ignored. Note that you cannot ""zero-out"" or remove any of the required fields. Validation errors will return a 400 error, and an invalid permission will return a 405 error.
+
+Deleting a contact:
+To delete a contact, you can make a DELETE request to the following endpoint:
+HTTP DELETE: /project/Contact/{SystemId}?ProjectSid={ProjectSID}
+Replace {SystemId} with the system ID of the contact and {ProjectSID} with the project SID. The response will be 200 if the delete operation is successful.",531
+Project Team API,https://iq.bigtime.net/BigtimeData/api/v2/Help/Overview,2024-04-10T17:00:00Z,"Topic: Project Team API
+
+Solution: The Project Team API allows you to interact with a project's team and staff teams. You can perform various actions such as getting a list of project team members, updating an existing project's team members, getting a list of project staff teams, and updating an existing project's staff teams.
+
+Getting a list of project team members:
+To retrieve the list of team members for a specific project, you can use a GET request with the following parameters:
+- HTTP GET: /project/team/{sid}
+- HEADERS: X-Auth-Token:{YourAPIToken}, X-Auth-Realm:{YourFirmId}
+The API will return an array of Project Team Member objects.
+
+Updating an existing project's team members:
+To add, delete, or update team members for an existing project, you can use a POST request with the following parameters:
+- HTTP POST: /project/team/{sid}
+- HEADERS: X-Auth-Token:{YourAPIToken}, X-Auth-Realm:{YourFirmId}
+- POST CONTENT: JSON array of Project Team Member objects
+The API will update the project's team according to the JSON array passed to the URL. Validation errors will return a 400 error, and an invalid permission will return a 405.
+
+Getting a list of project staff teams:
+To retrieve the list of staff teams for a specific project, you can use a GET request with the following parameters:
+- HTTP GET: /project/staffTeams/{sid}
+- HEADERS: X-Auth-Token:{YourAPIToken}, X-Auth-Realm:{YourFirmId}
+The API will return an array of Staff Team objects.
+
+Updating an existing project's staff teams:
+To add, delete, or update staff teams for an existing project, you can use a POST request with the following parameters:
+- HTTP POST: /project/staffTeams/{sid}
+- HEADERS: X-Auth-Token:{YourAPIToken}, X-Auth-Realm:{YourFirmId}
+- POST CONTENT: JSON array of Project Staff Team SIDs
+The API will update the project's staff teams according to the JSON array passed to the URL. Validation errors will return a 400 error, and an invalid permission will return a 405.
+
+Note: It is important to ensure that the user has the necessary permissions to view the project data in the BigTime program.",485
+Project Activities API,https://iq.bigtime.net/BigtimeData/api/v2/Help/Overview,2024-04-10T17:00:00Z,"Topic: Project Activities API
+
+Solution: 
+
+GET /Project/Activity
+This endpoint is used to fetch the activities attached to a project in BigTime.
+
+REQUEST FORMAT
+HEADERS: X-Auth-Token:{YourAPIToken}, X-Auth-Realm:{YourFirmId}
+HTTP GET: /project/Activity?projectId={projectId}&showCompleted={true/false/?}startDate={Date?}&endDate={Date?}
+
+RESPONSE FORMAT
+HTTP STATUS: 200 Success.
+HTTP STATUS: 403 Forbidden.
+HTTP STATUS: 5xx Error.
+
+HTTP RESPONSE:
+{
+    ""ActivityId"": long,
+    ""StaffSid"": long?,
+    ""ProjectSid"": long?,
+    ""TaskSid"": long?,
+    ""ActivityType"": long,
+    ""ActivityTypeName"": string,
+    ""EventType"": long?,
+    ""EventTypeName"": string,
+    ""Dt"": date?,
+    ""IsUnread"": bool,
+    ""IsCompleted"": bool,
+    ""Nt"": string,
+    ""Data"": string,
+    ""CreatedDt"": date,
+    ""CreatedBy"": long,
+    ""EMailId"": string,
+    ""EMailStatus"": long?,
+    ""EMailStatusName"": string,
+    ""NoticeMessage"": {
+        ""Body"": string,
+        ""LinkText"": string,
+        ""href"": string,
+        ""NoticeType"": string,
+        ""CategoryType"": string,
+        ""Subject"": string,
+        ""NoticeSettings"": string
+    },
+    ""Staff_Nm"": string,
+    ""Project_Nm"": string,
+    ""Client_Sid"": long,
+    ""Client_Nm"": string
+}
+
+POST /Project/Activity
+This endpoint is used to create activities in the BigTime system.
+
+REQUEST FORMAT
+HEADERS: X-Auth-Token:{YourAPIToken}, X-Auth-Realm:{YourFirmId}
+HTTP POST: /project/activity
+HTTP REQUEST:
+{
+    ""ProjectSid"": long,
+    ""StaffSid"": long?,
+    ""TaskSid"": long?,
+    ""ActivityType"": EActivityType (see below),
+    ""Dt"": date?,
+    ""IsUnread"": bool,
+    ""IsCompleted"": bool,
+    ""Nt"": string
+}
+
+Enums:
+
+EActivityType {
+    None = 0,
+    PhoneCall = 1,
+    EMail = 2,
+    Meeting = 3,
+    Note = 4,
+    Notification = 5,
+    Other = 10
+}
+
+RESPONSE FORMAT
+HTTP STATUS: 200 Success.
+HTTP STATUS: 4xx User Error.
+HTTP STATUS: 403 Forbidden.
+HTTP STATUS: 5xx Error.
+
+HTTP RESPONSE:
+{
+    ""ActivityId"": long,
+    ""StaffSid"": long?,
+    ""ProjectSid"": long?,
+    ""TaskSid"": long?,
+    ""ActivityType"": long,
+    ""ActivityTypeName"": string,
+    ""EventType"": long?,
+    ""EventTypeName"": string,
+    ""Dt"": date?,
+    ""IsUnread"": bool,
+    ""IsCompleted"": bool,
+    ""Nt"": string,
+    ""Data"": string,
+    ""CreatedDt"": date,
+    ""CreatedBy"": long,
+    ""EMailId"": string,
+    ""EMailStatus"": long?,
+    ""EMailStatusName"": string,
+    ""NoticeMessage"": {
+        ""Body"": string,
+        ""LinkText"": string,
+        ""href"": string,
+        ""NoticeType"": string,
+        ""CategoryType"": string,
+        ""Subject"": string,
+        ""NoticeSettings"": string
+    },
+    ""Staff_Nm"": string,
+    ""Project_Nm"": string,
+    ""Client_Sid"": long,
+    ""Client_Nm"": string
+}
+
+DELETE /Project/Activity
+This endpoint is used to remove Activities from a Project in the BigTime system.
+
+REQUEST FORMAT
+HEADERS: X-Auth-Token:{YourAPIToken}, X-Auth-Realm:{YourFirmId}
+HTTP DELETE: /project/activity
+HTTP REQUEST:
+{
+    ""id"": 0
+}
+
+RESPONSE FORMAT
+HTTP STATUS: 200 Success.
+HTTP STATUS: 4xx User Error.
+HTTP STATUS: 403 Forbidden.
+HTTP STATUS: 5xx Error.
+
+HTTP RESPONSE:
+{
+    ""success"": true
+}",867
+Project Labor Codes API,https://iq.bigtime.net/BigtimeData/api/v2/Help/Overview,2024-04-10T17:00:00Z,"Topic: Project Labor Codes API
+Solution: This section of the API is concerned with project labor codes. It provides endpoints to fetch, attach, and remove labor codes from projects in the BigTime system.
+
+GET /Project/LaborCodeTypes
+This endpoint is used to fetch all Labor Codes from the BigTime system. It accepts an optional parameter to show inactive labor codes.
+
+REQUEST FORMAT:
+HEADERS: X-Auth-Token:{YourAPIToken}, X-Auth-Realm:{YourFirmId}
+HTTP GET: /project/LaborCodeTypes?showInactive={true/false/?}
+
+RESPONSE FORMAT:
+HTTP STATUS: 200 Success.
+HTTP STATUS: 403 Forbidden.
+HTTP STATUS: 5xx Error.
+
+HTTP RESPONSE:
+[
+    {
+        ""SID"": long,
+        ""AcctSysSID"": long,
+        ""AcctSysSID2"": long,
+        ""AcctSysSID_nm"": string,
+        ""Code"": string,
+        ""Desc"": string,
+        ""InUse"": long,
+        ""IsInactive"": bool,
+        ""IsLocked"": bool,
+        ""IsNoCharge"": bool,
+        ""IsTaxable"": bool,
+        ""Nm"": string,
+        ""Rate1"": double,
+        ""Rate2"": double,
+        ""Rate3"": double,
+        ""Rate4"": double,
+        ""Rate5"": double,
+        ""SortOrd"": long
+    },
+    ...
+]
+
+GET /Project/LaborCode
+This endpoint is used to fetch the Labor Codes attached to a project in BigTime.
+
+REQUEST FORMAT:
+HEADERS: X-Auth-Token:{YourAPIToken}, X-Auth-Realm:{YourFirmId}
+HTTP GET: /project/LaborCode?projectId={projectId}
+
+RESPONSE FORMAT:
+HTTP STATUS: 200 Success.
+HTTP STATUS: 403 Forbidden.
+HTTP STATUS: 5xx Error.
+
+HTTP RESPONSE:
+[
+    {
+        ""SID"": long,
+        ""AcctSysSID"": long,
+        ""AcctSysSID2"": long,
+        ""AcctSysSID_nm"": string,
+        ""Code"": string,
+        ""Desc"": string,
+        ""InUse"": long,
+        ""IsInactive"": bool,
+        ""IsLocked"": bool,
+        ""IsNoCharge"": bool,
+        ""IsTaxable"": bool,
+        ""Nm"": string,
+        ""Rate1"": double,
+        ""Rate2"": double,
+        ""Rate3"": double,
+        ""Rate4"": double,
+        ""Rate5"": double,
+        ""SortOrd"": long
+    },
+    ...
+]
+
+POST /Project/LaborCode
+This endpoint is used to attach Labor Codes to Projects in the BigTime system. It returns a list of all Labor Codes attached to that project after the update.
+
+REQUEST FORMAT:
+HEADERS: X-Auth-Token:{YourAPIToken}, X-Auth-Realm:{YourFirmId}
+HTTP POST: /project/laborCode
+HTTP REQUEST:
+{
+    ""id"": 0, //ProjectSid
+    ""laborCodesToAdd"" : [1, 2] //Array of LaborCodeSid
+}
+
+RESPONSE FORMAT:
+HTTP STATUS: 200 Success.
+HTTP STATUS: 4xx User Error.
+HTTP STATUS: 403 Forbidden.
+HTTP STATUS: 5xx Error.
+
+HTTP RESPONSE:
+[
+    {
+        ""SID"": long,
+        ""AcctSysSID"": long,
+        ""AcctSysSID2"": long,
+        ""AcctSysSID_nm"": string,
+        ""Code"": string,
+        ""Desc"": string,
+        ""InUse"": long,
+        ""IsInactive"": bool,
+        ""IsLocked"": bool,
+        ""IsNoCharge"": bool,
+        ""IsTaxable"": bool,
+        ""Nm"": string,
+        ""Rate1"": double,
+        ""Rate2"": double,
+        ""Rate3"": double,
+        ""Rate4"": double,
+        ""Rate5"": double,
+        ""SortOrd"": long
+    },
+    ...
+]
+
+DELETE /Project/LaborCode
+This endpoint is used to remove Activities from a Project in the BigTime system. It returns a list of all Labor Codes attached to that project after the update.
+
+REQUEST FORMAT:
+HEADERS: X-Auth-Token:{YourAPIToken}, X-Auth-Realm:{YourFirmId}
+HTTP DELETE: /project/activity
+HTTP REQUEST:
+{
+    ""id"": 0,
+    ""laborCodesToRemove"" : [1, 2]
+}
+
+RESPONSE FORMAT:
+HTTP STATUS: 200 Success.
+HTTP STATUS: 4xx User Error.
+HTTP STATUS: 403 Forbidden.
+HTTP STATUS: 5xx Error.
+
+HTTP RESPONSE:
+[
+    {
+        ""SID"": long,
+        ""AcctSysSID"": long,
+        ""AcctSysSID2"": long,
+        ""AcctSysSID_nm"": string,
+        ""Code"": string,
+        ""Desc"": string,
+        ""InUse"": long,
+        ""IsInactive"": bool,
+        ""IsLocked"": bool,
+        ""IsNoCharge"": bool,
+        ""IsTaxable"": bool,
+        ""Nm"": string,
+        ""Rate1"": double,
+        ""Rate2"": double,
+        ""Rate3"": double,
+        ""Rate4"": double,
+        ""Rate5"": double,
+        ""SortOrd"": long
+    },
+    ...
+]",1087
+Project Custom Fields API,https://iq.bigtime.net/BigtimeData/api/v2/Help/Overview,2024-04-10T17:00:00Z,"Topic: Project Custom Fields API
+
+Solution: 
+
+By using the BigTime API, you can retrieve a list of custom fields for a specific project. 
+
+To get a list of project custom fields, you can make a GET request to the following endpoint: /project/customfields/{sid}. Please note that you need to include the project SID in the URL. 
+
+In order to make the request, you need to include the following headers: 
+- X-Auth-Token: {YourAPIToken}
+- X-Auth-Realm: {YourFirmId}
+
+The response will be an array of Project Custom Field objects. 
+
+If you want to retrieve a list of project custom fields by field name, you can make a POST request to the /project/CustomFieldsByName endpoint. You can specify the field names in the POST content as an array. If you don't specify any field names or pass an empty list, you will get a full list of custom fields for all your projects. 
+
+The headers required for this request are the same as before: 
+- X-Auth-Token: {YourAPIToken}
+- X-Auth-Realm: {YourFirmId}
+
+The response will also be an array of Project Custom Field objects. 
+
+If you need to update the custom fields on a project, you can make a POST request to the /project/customfields/{sid} endpoint. In the POST content, you need to include a JSON array of Project Custom Field objects. The project SID and the custom field values should be included in each object. 
+
+Again, the headers required for this request are: 
+- X-Auth-Token: {YourAPIToken}
+- X-Auth-Realm: {YourFirmId}
+
+The response will be an updated array of Project Custom Field objects. 
+
+Please note that if there are any validation errors, you will receive a 400 error. If you don't have the necessary permissions, you will receive a 405 error.",400
+Project Templates API,https://iq.bigtime.net/BigtimeData/api/v2/Help/Overview,2024-04-10T17:00:00Z,"Topic: Project Templates API
+Solution: This API allows you to interact with project templates in BigTime. You can perform various actions such as getting a listing of project templates, pulling the details for a specific template, creating a new template, updating existing templates, and deleting a template.
+
+Getting a listing of project templates:
+To get a listing of project templates, you can submit a simple query to the API. No additional parameters are required. The HTTP GET request should be made to ""/Project/Templates?{ShowInactive=true}"". The response will be an array of Template objects.
+
+Pulling the detail for a specific template:
+To pull the details associated with a specific template, you can use a simple GET request. The HTTP GET request should be made to ""/project/template/{TemplateId}"". Note that a user cannot pull project data for an entity they are not permitted to view in the BigTime program. The response will be a Template object.
+
+Creating a new template:
+To create a new template, you need to make a POST request to ""/project/Template/{SystemId}"". Only the fields listed in the Update view should be included in the post. Any other data will be ignored. The required fields (*) must be included. The POST content should include the TemplateDescription and FName fields. The response will be the updated Template object in the ""basic"" view.
+
+Updating existing templates:
+To update an existing template, you need to make a POST request to ""/project/template/{TemplateId}"". Only the fields listed in the Update view should be included in the post. Any other data will be ignored. The POST content should include the ProjectSid and FName fields. Note that you cannot ""zero-out"" or remove any of the required (*) fields. The response will be the updated Template object in the ""basic"" view.
+
+Deleting a template:
+To delete a template, you need to make a DELETE request to ""/project/Template/{TemplateId}"". The response code 200 indicates a successful delete.",398
+Custom Bill Rates API,https://iq.bigtime.net/BigtimeData/api/v2/Help/Overview,2024-04-10T17:00:00Z,"Topic: Custom Bill Rates API
+
+Solution: The Custom Bill Rates API allows you to interact with a project's custom bill rates. You can perform various actions using this API, as described below.
+
+1. Pulling custom bill rate details for a project:
+   - HTTP GET: /project/rates/{ProjectSID}
+   - HEADERS: X-Auth-Token:{YourAPIToken}, X-Auth-Realm:{YourFirmId}
+   - HTTP RESPONSE: (array of ProjectRate objects)
+
+2. Pulling details for a specific custom bill rate:
+   - HTTP GET: /project/rate/{CustomRateSID}
+   - HEADERS: X-Auth-Token:{YourAPIToken}, X-Auth-Realm:{YourFirmId}
+   - HTTP RESPONSE: (Single ProjectRate object)
+
+3. Creating a new Custom Bill Rate:
+   - HTTP POST: /project/rate
+   - HEADERS: X-Auth-Token:{YourAPIToken}, X-Auth-Realm:{YourFirmId}
+   - POST CONTENT: {""ProjectSid"": 0, ""StaffSid"":0, ""CatSid"":0, ""TaskSid"":0, ""RateVal"": 0}
+   - HTTP RESPONSE: (new ProjectRate object)
+
+4. Updating an Existing Custom Bill Rate:
+   - HTTP POST: /project/rate/{CustomRateSID} (customratesid is from the GET operation above, i.e. /project/rates/{ProjectSID})
+   - HEADERS: X-Auth-Token:{YourAPIToken}, X-Auth-Realm:{YourFirmId}
+   - POST CONTENT: {""ProjectSid"": 0, ""StaffSid"":0, ""CatSid"":0, ""TaskSid"":0, ""RateVal"": 0}
+   - HTTP RESPONSE: (updated ProjectRate object)
+
+5. Deleting a Custom Bill Rate:
+   - HTTP DELETE: /project/rate/{CustomRateSID} (customratesid is from the GET operation above, i.e. /project/rates/{ProjectSID})
+   - HEADERS: X-Auth-Token:{YourAPIToken}, X-Auth-Realm:{YourFirmId}
+   - HTTP RESPONSE: 200 is a successful delete.
+
+Project Rate Object Field Details (Main Fields):
+- SID: Integer - Unique SID code for this rate record.
+- ProjectSid: Integer - The unique Id attached to this rate's project record.
+- StaffSid: Integer - Unique SID for this Staffer.
+- CatSid: Integer - Unique SID code for the Labor Code.
+- TaskSid: Integer - Unique SID code for the task.
+- RateVal: Integer - Rate value for this custom bill rate.",552
+Client API,https://iq.bigtime.net/BigtimeData/api/v2/Help/Overview,2024-04-10T17:00:00Z,"Topic: Client API
+
+Solution: 
+
+API login:
+To login to the BigTime API, use your API key and firm ID as headers in the HTTP GET request. The API provides access to the list of clients that a user would have rights to see if they were logged into the system directly.
+
+Getting a listing of ""My Clients"":
+To get a listing of ""My Clients"", click the GET button below to view the information returned by the URL. By submitting a simple query to this API, you'll get a listing of client data in the ""simple"" view on the listings page. No additional parameters are required or supported.
+
+HTTP GET: /client?ShowInactive=true
+
+Pulling the detail for a specific client:
+To pull the details associated with a single client entry, use a simple GET request. Note that the BASIC view fields will be returned by default. It's important to note that a user cannot pull client data for an entity they are not permitted to view in the BigTime program.
+
+HTTP GET: /client/detail/{systemid}?View={Detailed/Basic}
+
+Creating a new client:
+To create a new client, use a POST request to the /client/detail endpoint. Include the required fields listed in the Update view. Any other data will be ignored. Note that validation errors will return a 400 error, and an invalid permission will return a 405.
+
+HTTP POST: /client/detail
+POST CONTENT: {""Nm"": ""My Test Client"", ""ClientId"": ""TEST-1""}
+
+Updating existing clients:
+To update existing clients, use a POST request to the /client/detail/{sid} endpoint. Include the required fields listed in the Update view. Any other data will be ignored. Note that validation errors will return a 400 error, and an invalid permission will return a 405.
+
+HTTP POST: /client/detail/{sid}
+POST CONTENT: {""SystemId"": ""{sid}"", ""Nm"": ""My Test Client"", ""ClientId"": ""TEST-1""}
+
+Client Object Field Details:
+For each of the operations listed above, you will post or ""get"" one or more client objects. The following is a complete catalog of fields available through the API, including the views within which those fields are found. Required fields are flagged with an ""*"" character.
+
+- SystemId: Integer, Basic, Detail, Update
+- Nm: String, Basic, Detail, Update
+- LegalNm: String, Basic, Detail, Update
+- ClientId: String, Basic, Detail, Update
+- Address: String, Basic, Detail, Update
+- City: String, Basic, Detail, Update
+- State: String, Basic, Detail, Update
+- Zip: String, Basic, Detail, Update
+- Country: String, Basic, Detail, Update
+- FullAddress: String, Basic
+- MainPH: String, Basic, Detail, Update
+- MainFX: String, Basic, Detail, Update
+- Notes: String, Basic, Detail, Update",606
+Task API Documentation,https://iq.bigtime.net/BigtimeData/api/v2/Help/Overview,2024-04-10T17:00:00Z,"Topic: Task API Documentation
+Solution: The BigTime Task API provides developers with access to various operations related to tasks in the BigTime system. This includes retrieving task data, getting budget status data, creating new tasks, updating existing tasks, and deleting tasks. 
+
+API Login:
+To access the BigTime Task API, you need to login using your API Key.
+
+Getting a Listing of Tasks by Project:
+To retrieve a listing of tasks assigned to a specific project, you can make a GET request to the following endpoint:
+/task/listByProject/{ProjectSid}?{showCompleted=True/False}
+You need to provide the project id (ProjectSid) as a parameter. By default, only tasks that are ""in process"" are returned, but you can pass the parameter showCompleted=True to include archived tasks as well.
+
+Getting ""Budget Status"" Data for a Project's Tasks:
+In addition to retrieving a list of tasks, you can also pull the current totals for time/expenses and invoice line item amounts on a per-task basis. This information is useful for budget reporting. To get the budget status data for a project's tasks, you can make a GET request to the following endpoint:
+/task/BudgetStatusByProject/{ProjectSid}
+
+Getting a Listing of Tasks by Staffer:
+To retrieve a listing of tasks assigned to a specific staffer, you can make a GET request to the following endpoint:
+/task/ListByStaffer/{StaffSid}?{showCompleted=True/False}
+You need to provide the staffer id (StaffSid) as a parameter. By default, only tasks that are ""in process"" are returned, but you can pass the parameter showCompleted=True to include archived tasks as well.
+
+Pulling the Detail for a Specific Task:
+To retrieve the details associated with a single task, you can make a GET request to the following endpoint:
+/task/detail/{TaskSid}?&View={Detailed/Basic}
+You need to provide the task id (TaskSid) as a parameter. By default, the detailed view fields will be returned. Note that you can only pull data for tasks that you have permission to view in the BigTime program.
+
+Creating a New Task:
+To create a new task, you can make a POST request to the following endpoint:
+/task/detailPOST CONTENT:{TaskSid: 0, ProjectSid:0, Tasknm:""Test New Task""}
+You need to include the required fields (TaskSid, ProjectSid, Tasknm) in the post request. Any other data will be ignored. Note that validation errors will return a 400 error, and an invalid permission will return a 405 error.
+
+Updating Existing Tasks:
+To update existing tasks, you can make a POST request to the following endpoint:
+/task/detail/{taskSid}POST CONTENT:{TaskSid: 123, notes: ""this is an updated note...""}
+You need to include the task id (taskSid) as a parameter and the fields you want to update in the post request. Note that validation errors will return a 400 error, and an invalid permission will return a 405 error.
+
+Deleting a Task:
+To delete a task, you can make a DELETE request to the following endpoint:
+/task/detail/{sid}
+You need to provide the task id (sid) as a parameter. As long as there is no time/expense data logged against a task, it can be deleted through the API.
+
+Task Field Details:
+For each of the operations mentioned above, you will receive task objects. The following is a complete catalog of fields available through the API for task objects. Take note of the required fields, which are flagged with an ""*"":
+- TaskSid (Integer)
+- ProjectSid (Integer)
+- ProjectLinkType (String Enum)
+- TaskNm (String)
+- TaskGroup (String)
+- FullName (String)
+- TaskType (TypeLinkValue)
+- CurrentStatus (StatusLinkValue)
+- TaskId (String)
+- Priority (String)
+- Notes (String)
+- AssignCount (Integer)
+- AssignmentList (List of StaffSid and Nm)
+- AssignmentNames (String)
+- AssignLinkListType (String Enum)
+- DueDt (Date)
+- StartDt (Date)
+- FeeOrExpense (Integer)
+- BudgetHours (Numeric)
+- BudgetFees (Numeric)
+- BudgetExps (Numeric)
+- BudgetTotal (Numeric)
+- PerComp (Numeric)
+- IsArchived (True/False)
+- DefaultQBClass (Integer)
+- IsSeriesMaster (True/False)
+- MasterTaskSid (Integer)
+- ParentSid (Integer)
+- NoCharge (True/False)
+
+Task Budget Data Field Details:
+For each task, you can also retrieve budget data. The following fields are available:
+- TaskSid (Integer)
+- HoursInput (Numeric)
+- HoursBill (Numeric)
+- FeesInput (Numeric)
+- FeesCost (Numeric)
+- ExpensesInput (Numeric)
+- ExpensesBillable (Numeric)
+- TotalWip (Numeric)
+
+Please note that the API requires authentication using your API Token and Realm ID.",1019
+Invoice API Documentation,https://iq.bigtime.net/BigtimeData/api/v2/Help/Overview,2024-04-10T17:00:00Z,"Topic: Invoice API Documentation
+Solution: This article provides detailed information on how to use the BigTime Invoice API to perform various operations such as retrieving invoice lists, getting invoices by date range or client ID, working with individual invoices, creating new invoices, updating existing invoices, updating invoice line items, and deleting invoices.
+
+API Login:
+To access the BigTime Invoice API, you need to login with your API Key.
+
+Invoice Lists:
+You can retrieve lists of invoices by period or status using the BigTime Invoice API. The API allows you to pull invoices for a specific time period or all draft invoices in the system. Basic filtering is also supported.
+
+Getting Invoices by Date Range:
+To retrieve invoices by date range, you can submit a GET request to the following API endpoint:
+/invoice/history?startDt={YYYY-MM-DD}&endDt={YYYY-MM-DD}
+This will return a listing of invoice data in the ""simple"" view.
+
+Getting All Draft Invoices:
+To retrieve all draft invoices, you can submit a GET request to the following API endpoint:
+/invoice/drafts?[startDt={YYYY-MM-DD}]&[endDt={YYYY-MM-DD}]
+This will return a listing of invoice data in the ""simple"" view.
+
+Getting Invoices by Client ID:
+To retrieve invoices for a specific client within a date range, you can submit a GET request to the following API endpoint:
+/invoice/GetInvoicesByClientId?[clientid={0}&startDt={YYYY-MM-DD}]&[endDt={YYYY-MM-DD}]
+This will return a listing of invoice data in the ""simple"" view.
+
+Working with Individual Invoices:
+You can perform various operations on individual invoices using the BigTime Invoice API. These operations include pulling invoice details, creating new invoices, updating existing invoices, updating invoice line items, and deleting invoices.
+
+Pulling the Detail for a Specific Invoice:
+To retrieve the details associated with a single invoice, you can submit a GET request to the following API endpoint:
+/invoice/detail/{sid}
+This will return a detailed object for the specified invoice.
+
+Creating a New Invoice:
+To create a new invoice, you need to specify the project for which the invoice should be created and the InvoiceType. You can create different types of invoices using different invoice calculators. To create an empty (""manual"") invoice, pass the invoice type of 0. To create a Time/Material invoice, pass the invoice type of 1. Additional invoice types are available.
+
+Updating Existing Invoice Entries:
+To update existing invoice entries, you can submit a POST request to the following API endpoint:
+/invoice/detail/{sid}
+Include the fields you want to update in the POST content. Only the fields listed in the AddUpdate view should be included in the post. Any other data will be ignored.
+
+Updating Invoice Line Items:
+You can update invoice line items by including the LineNbr value for each line item. You can add new line items by including a LineNbr value of 0. Excluding a line from the post will not delete it. You can also remove line items by setting the IsDeleted property to TRUE.
+
+Deleting an Invoice:
+To delete an invoice, you can submit a DELETE request to the following API endpoint:
+/invoice/detail/{sid}
+
+Invoice Object Field Details:
+The article provides a complete catalog of fields available through the API for invoice objects. Each field is described along with the views within which those fields are found. Required fields are flagged with an ""*"".
+
+Invoice Line Item Object Details:
+The article provides details on the fields available for invoice line items. Each field is described along with the views within which those fields are found.
+
+Invoice SalesTax Line Object Details:
+If an invoice includes sales tax, each line item is marked with the tax rate it should be billed at. The article provides details on the fields available for sales tax lines.
+
+This API documentation article provides comprehensive information on how to use the BigTime Invoice API for various operations. Developers can refer to this article to understand the API endpoints, request parameters, and response formats for working with invoices in BigTime.",825
+Reporting API,https://iq.bigtime.net/BigtimeData/api/v2/Help/Overview,2024-04-10T17:00:00Z,"Topic: Reporting API
+
+Solution: The BigTime Reporting API allows users to extract and customize data from the BigTime system for use in external reporting and dashboard applications. This API provides a powerful way to access and manipulate data, combining fields and calculations into a single table and allowing for customized filters and settings.
+
+To use the Reporting API, follow these steps:
+
+Step 1: Create the report you want to export. Before you can export a report's data, you need to create it in BigTime. This involves selecting the desired fields and settings for the report. For example, you can create a Timesheet Summary report with fields like Staff Member and Total Input Hours.
+
+Step 2: Note the report's ""Id"" in BigTime. Once the report has been published, it will appear in the list of system reports in BigTime's Report Center. Clicking on the report will take you to the report's ""Detail"" page, where you can find the report's Id in the URL.
+
+Step 3: Use the reporting API to pull the report's data. To retrieve the data from a report, make a GET request to the /report/data/{id} endpoint of the reporting API. You will need to include the report's Id in the request URL, as well as your API token and firm Id in the headers. The API will return an array of data for that report.
+
+To interpret the data returned by the API, you can use the report's schema. The schema provides information about the structure and organization of the report's data, including the names and types of the fields. You can retrieve the schema by making a GET request to the /report/detail/{id} endpoint of the reporting API.
+
+In addition to retrieving data, you can also use the API to change a report's settings. By making a POST request to the /report/data/{id} endpoint, you can specify different settings for the report, such as a custom date range. The API will then use these settings to pull the data for the report.
+
+Different reports support different settings, so it's important to consult the report's schema to determine what filter settings are available. The schema also provides information about the basic fields of the report, such as the report's name, description, and type.
+
+Overall, the BigTime Reporting API offers developers a flexible and powerful tool for accessing and manipulating data from the BigTime system. By following the steps outlined above and using the API's endpoints, you can create custom reports and extract the exact data you need for your external reporting and dashboard applications.",520
+Staff API Documentation,https://iq.bigtime.net/BigtimeData/api/v2/Help/Overview,2024-04-10T17:00:00Z,"Topic: Staff API Documentation
+
+Solution: The BigTime Staff API provides access to various operations related to staff members in the BigTime system. This includes retrieving staff member information, creating new staff members, inviting existing staff members, managing staff allocations, managing staff skills, managing custom fields for staff members, and more.
+
+API Endpoints:
+
+1. GET /staff: Retrieves a list of staff members in the system.
+2. GET /staff/detail/{systemid}?&View={Detailed/Basic}: Retrieves the details of a specific staff member.
+3. POST /staff/add/?inviteUser={true/false}: Creates a new staff member.
+4. POST /staff/invite: Invites existing staff members to BigTime.
+5. GET /staff/staffAllocations/?startDate={Date}&endDate={Date}&allocationPeriodType={weekly/monthly}: Retrieves staff allocations by week or month for a specified date range.
+6. GET /staff/skillTypes: Retrieves the skill types present in BigTime.
+7. GET /staff/skill: Retrieves existing skills from the BigTime system.
+8. POST /staff/skill: Creates new skills in the BigTime system.
+9. DELETE /staff/skill: Removes skills from the BigTime system.
+10. GET /staff/SkillAssignment/{staffId}: Retrieves existing skills assigned to a designated staff member.
+11. POST /staff/SkillAssignment: Assigns skills to staff members in the BigTime system.
+12. DELETE /staff/SkillAssignment: Removes skill assignments from staff members in the BigTime system.
+13. GET /staff/UDFList/{sid}: Retrieves custom fields for a specific staff member.
+14. POST /staff/UDFListByName: Retrieves custom fields with a specific field name.
+15. POST /staff/UDFList/{sid}: Updates custom fields on a staff member.
+
+Staff Member Fields:
+
+- StaffSid: Unique SID code for the staff member.
+- FName: First (given) name of the staff member.
+- SName: Last (family) name of the staff member.
+- Title: Business title/position of the staff member.
+- ManagerID: The StaffSid of the staffer's manager.
+- Address: The address object attached to this contact.
+- EMail: Primary email address of the staff member.
+- Phone_Cell: Primary phone number of the staff member.
+- Phone_Wk: Additional phone number of the staff member.
+- Phone_Hm: Additional phone number of the staff member.
+- Notes: Free form notes field for the staff member.
+- IsInactive: Indicates if the staff member is inactive.
+- Status: The status code controls the specific reason behind a staff member's deactivation.
+- Start_dt: Start date for the staff member.
+- Term_dt: Date when a staff member is terminated.
+- UsePayrollItem: TRUE if payroll item data should be posted to the accounting system.
+- Capacity: Total 'available' hours per staff member.
+- CostFactor: Cost factor for the staff member.
+- HourRateType: Hour rate type for the staff member.
+- Rate1-5: Staff billing rates.
+- StaffOrgId: ID of the organization the staff member is a member of.
+- StaffType: Staff type of the staff member.
+- HomeTimezone: The staff member's home timezone.
+- DtCreated: UTC Date that the staff member was created.
+- DtModified: UTC Date that the staff member was last modified.
+- SecurityGroup: ID of the security group the staff member is assigned to.
+- DefaultRole: ID of the project team role the staff member is assigned to.
+- UdfList: List of custom fields defined on the staff member.
+- SSN: The staff member's social security number.
+- Salary: The staff member's salary.
+- PostTimeAsBilled: Set TRUE if a staff member is set to create their time into a vendor bill.
+- Additional fields if integrated with QuickBooks or Sage Intacct.
+
+Staff Allocation Fields:
+
+- StaffSid: Unique SID code for the staff member.
+- StaffFName: First (given) name of the staff member.
+- StaffSName: Last (family) name of the staff member.
+- StaffCC1-3: Cost center values assigned to the staff member.
+- StaffOrgID: ID of the organization the staff member is a member of.
+- StaffInactive: Indicates if the staff member is inactive.
+- StaffStatus: The status code controls the specific reason behind a staff member's deactivation.
+- RealCapacity: Total 'available' hours per staff member.
+- RawCapacity: Total 'available' hours per staff member in a ""typical"" month.
+- ProjectSid: Unique SID code for the project record.
+- ProjectDName: Display name of the project.
+- ProjectCC1-3: Cost center values assigned to the project.
+- ProjectBillable: Indicates if the project is billable.
+- ProjectInactive: Indicates if the project is inactive.
+- ProjectDeactivated: Indicates if the project was deactivated manually.
+- ProjectTypeId: Unique SID code for the project's type.
+- ProjectStatusProd: The production status code controls the specific reason behind a project's deactivation.
+- Period: Simplified expression indicating the start date of the period in question.
+- AllocatedHours: Number of hours allocated for the staff member in the specified period.
+- StaffRole: ID of the project team role the staff member is assigned to.
+- IsRole: Indicates if the allocation was applied via the staff member's role or directly.
+
+Staffer Custom Field Object Fields:
+
+- Sid: Unique SID for the custom field.
+- Name: Name of the custom field.
+- Value: Value of the custom field.
+
+This API documentation provides developers with the necessary information to interact with the BigTime Staff API and perform various operations related to staff members in the BigTime system.",1198
+API Login,https://iq.bigtime.net/BigtimeData/api/v2/Help/Overview,2024-04-10T17:00:00Z,"Topic: API Login
+Solution: To login to the API, you need to use your API key. This key is used to authenticate your requests and ensure that only authorized users can access the API.
+
+Topic: Firm-Level Settings
+Solution: BigTime allows you to customize various settings at the firm level. This includes adjusting screens, workflow, and lookup values based on your firm's individual needs. The API provides access to these settings, allowing you to personalize your work. For example, if you're creating a time-entry widget, you can use the API to query the firm-level vocabulary settings. This allows you to use the specific labels and menus set up by the firm instead of generic ones.
+
+Topic: Firm-Level Vocabulary
+Solution: The API provides a way to adjust labels and menus in the system at the firm level. This is useful for firms that have specific terminology preferences. For example, a law firm may prefer to use the term ""matters"" instead of ""projects"". By utilizing the system vocabulary, your extension can seamlessly integrate with the core system and be readily accepted by users.
+
+Topic: Timesheet ""Schema"" Values
+Solution: When a firm sets up their timesheet in BigTime, they can customize the fields that users need to track. The API allows you to retrieve the timesheet schema, which includes information about the fields included in a firm's time entry settings. By downloading the timesheet schema, you can automatically customize your time-entry related products to match the user's online timesheet settings.
+
+API Endpoint: /settings/vocabulary
+HTTP Method: GET
+Headers: X-Auth-Token: {YourAPIToken}, X-Auth-Realm: {YourFirmId}
+Response: An array of vocabulary items, each containing an ID and a value.
+
+API Endpoint: /settings/timesheet/schema
+HTTP Method: GET
+Headers: X-Auth-Token: {YourAPIToken}, X-Auth-Realm: {YourFirmId}
+Response: An array of field items, each containing information about a field on a firm's timesheet. The fields include the field name, column order, whether it is required, whether it is a detail level field, and the label attached to the field in the BigTime UI.",456
+API Async Controller and Ticketing System,https://iq.bigtime.net/BigtimeData/api/v2/Help/Overview,2024-04-10T17:00:00Z,"Topic: API Async Controller and Ticketing System
+
+Solution: The BigTime API provides an asynchronous controller and ticketing system for actions that are complicated or time-consuming. This system allows you to submit a request and receive a ""ticket"" in return. You can then track the status of the ticket until BigTime completes the requested process.
+
+The asynchronous controller is particularly useful for integration requests, such as posting data to QuickBooks, or for more complex requests, like updating billing rates on unbilled time. It is the only way to accomplish these types of goals.
+
+To initiate an asynchronous process, you need to call one of the pre-defined functions provided by the API. These functions will return a unique ticket ID, which you can use to check the progress of the process by calling the ""/async/ticket/{id}"" endpoint. It is recommended to wait for 5-10 seconds between calls to this endpoint.
+
+Both the specific async functions and the ""/async/ticket"" endpoint will return a transaction object. This object contains various fields, including the ticket ID, the current status of the transaction, a description of the transaction, the submission and completion dates, and any errors encountered during the process.
+
+Here is an example of the transaction object structure:
+
+- txnId (String): The ticket ID used to track the async process.
+- resultCode (Integer): The current status of the ticket. 0 indicates the process is in progress, 1 indicates success, and 3 indicates an error.
+- description (String): A text description of the transaction.
+- submitDt (Date): The date and time when the transaction was submitted.
+- completedDt (Date): The date and time when the transaction was completed.
+- errors (ModelError): An array of model error objects, which provide details about any errors encountered during the transaction.
+
+Submitting a timesheet:
+To submit a timesheet, you can use the following call format:
+- HTTP GET: /Async/submitTimesheet/{staffSid}?startDt={YYYYMMDD}&endDt={YYYYMMDD}
+- Headers: X-Auth-Token:{YourAPIToken}, X-Auth-Realm:{YourFirmId}
+
+Submitting a signed timesheet:
+If your firm requires users to sign their timesheets, you can use the following call format:
+- HTTP POST: /Async/submitTimesheetSigned/{StafferId}
+- Headers: X-Auth-Token:{YourAPIToken}, X-Auth-Realm:{YourFirmId}
+- POST DATA: {StartDt:""yyyy-MM-dd"", EndDt:""yyyy-MM-dd"", Signature: ""Joe Schmoe"", UserPasscode:""password123""}
+
+Submitting expenses:
+To submit expenses, you can use the following call format:
+- HTTP GET: /Async/submitExpenses/{staffSid}?title={title}
+- Headers: X-Auth-Token:{YourAPIToken}, X-Auth-Realm:{YourFirmId}
+
+Please refer to the BigTime API documentation for more details on these async requests and other available API functions.",617
+API OAuth2 Authentication and Authorization,https://iq.bigtime.net/BigtimeData/api/v2/Help/Overview,2024-04-10T17:00:00Z,"Topic: API Authentication and Authorization
+
+Solution: 
+
+BigTime provides an OAuth 2.0 API for secure access to user resources without sharing their credentials. This API allows third-party apps to authenticate and authorize users to access BigTime resources.
+
+To begin the authentication process, the app should redirect the user to the BigTime authentication page by making an HTTP GET request to ""/oauth2/authorize"". The request should include the client ID and redirect URI as query parameters. Once the user is redirected to the BigTime authentication page and successfully authenticated, the app will be authorized and redirected back to the specified redirect URI with an authorization code.
+
+The authorization code can then be exchanged for an access token by making an HTTP POST request to ""/oauth2/accesstoken"". The request should include the client ID, client secret, authorization code, and grant type as parameters. The response will contain an access token, refresh token, and expiration time.
+
+To access user resources, the app should include the access token in the header of API requests. For example, the header should include ""Authorization: Bearer {access_token}"". Alternatively, the access token can be included as a URL parameter for GET requests.
+
+To refresh the access token without requiring the user to sign in again, the app can use the refresh token. To do this, the app should make an HTTP POST request to ""/oauth2/accesstoken"" with the client ID, client secret, grant type set to ""refresh_token"", and the refresh token. The response will contain a new access token, refresh token, and expiration time.
+
+Please note that certain errors may occur during the authentication and authorization process. These errors include ""invalid_request"" (missing required parameter), ""invalid_client"" (client cannot be authenticated), ""invalid_grant"" (invalid or expired authorization code), and ""server_error"" (BigTime could not process the request).
+
+For further assistance, please contact support at support@bigtime.net.",396
+API Postman,https://iq.bigtime.net/BigtimeData/api/v2/Help/Overview,2024-04-10T17:00:00Z,"Topic: API Postman
+Solution: BigTime's Postman collection provides a simple approach to interacting with our API suite. To access the Postman collection, follow this link: [https://www.postman.com/bigtime-restful/workspace/restful](https://www.postman.com/bigtime-restful/workspace/restful). You will be redirected to an overview of the Postman collection.
+
+Creating a local fork is recommended to protect your firm details from other users. To create a fork of a collection, click the ellipses of a collection and select the ""Create a fork"" option. You can then fork this collection to any other workspace that you are a member of. If you'd like to receive notifications when a change has been made to this collection, check the ""Watch original collection"" option. Additionally, if you'd like to utilize the automated handling of session data between calls, make sure to also fork the ""IQ"" environment. To do this, click the ""Environments"" tab in the left-hand column and follow the same forking steps as for the collection.
+
+To generate a BigTime session to allow access to the other API endpoints, there are two ways. For details regarding these endpoints, please refer to the ""Getting Connected"" section of the documentation. This section will detail the Postman-specific interactions of creating a session.
+
+First, if you are utilizing the provided Postman Environment, make sure to select it from the environment dropdown in the top right of the interface. For creating a session via User Id and Password, you can save your credentials in the collection variables tab of the ""_Session (Start Here)"" collection. Make sure to save the values you insert. If not saved, the endpoint call will not use them in its body. After setting your credentials and saving, you will be able to successfully call the Login-based session creation endpoint. The endpoint includes post-execution automation to save your session variables to the environment object for any subsequent endpoint calls. These are hidden by default but you are able to view them from the ""Environments"" tab.
+
+Any collection in the workspace can be forked and customized to suit your needs. By default, all endpoints are configured to automatically use the session variables configured in the ""Environments"". They will also all have a sample JSON body that holds a property for each field. All properties will be the default value for their respective data type.",488

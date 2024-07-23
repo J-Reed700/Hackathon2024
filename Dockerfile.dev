@@ -1,0 +1,26 @@
+FROM python:3.9.19-alpine3.20
+
+
+WORKDIR src/
+
+# COPY ./requirements.txt .
+# install requirements first to benefit from caching
+# RUN pip install -r requirements.txt
+RUN pip install poetry
+
+COPY ./pyproject.toml .
+COPY ./poetry.lock .
+
+RUN apk add --no-cache build-base libffi-dev
+RUN apk add --no-cache openssl
+
+RUN poetry config virtualenvs.create false
+RUN poetry install
+
+COPY ./config.py .
+COPY ./run.py .
+COPY ./app/ ./app
+COPY ./data/ ./data
+
+EXPOSE 5000
+CMD python3 run.py

@@ -1,0 +1,781 @@
+﻿article_title,updated_at,content,tokens
+Understanding the Basic Structure of Invoice XML in BigTime,2024-04-10T17:00:00Z,"Topic: Understanding the Basic Structure of Invoice XML in BigTime
+
+Content:
+This article provides an overview of the basic XML structure used for invoices within the BigTime system. Each invoice is represented by an XML file adhering to the format outlined below.
+
+The root element, btInvoice, serves as the wrapper for the invoice content, specifying the document's orientation and margins. Nested within this root element are various other elements that define the invoice's details and layout.
+
+Key elements and attributes include:
+
+The style element, which defines classes for styling the document. For example, a class named ""body"" may set the font color, family, and size for the document.
+The table element with id=""InvoicePageHeader"" is designated as the page header for the entire document, repeating on every page.
+The div element with id=""InvoiceTitle"" provides a title for the invoice summary.
+The dataTable element represents a collection of data in a tabular format. It contains fld elements that define the data fields, such as ""Description"" and ""Amount"", including their labels and styling.
+Special properties or elements to note:
+
+PageFooter or Page1Footer IDs are used to define footer elements for the document, with Page1Footer being specific to the first page.
+Data is merged into the XML through dataTable or fld elements, with dataTable used for grid collections and fld for individual properties of the IInvoice object.
+The above structure ensures a consistent and customizable format for invoice representation in the BigTime system. Example: <?xml version=""1.0"" encoding=""utf-16""?>
+<btInvoice style=""margin:25"" orientation=""portrait"">
+   <style>
+      <body>color:#333333;font-family:Arial;font-size:10;</body>
+   </style>
+   <table id=""InvoicePageHeader"">
+      <tr><td>{#fld=BillingAddress.CoNm}</td></tr>
+         ....
+   </table>
+   <div id=""InvoiceTitle"">INVOICE SUMMARY</div>
+   <dataTable collection=""lines"" showRptTotal=""1"">
+      <fld label=""Description"">nm</fld>
+      <fld label=""Amount"" style=""width:110;text-align:right;"">Amt</fld>
+   </dataTable>
+   ....
+</btInvoice>",298
+Streamlining Invoices for Efficient Payment Processing,2024-04-10T17:00:00Z,"Topic: Streamlining Invoices for Efficient Payment Processing
+
+Content:
+This article synthesizes best practices for creating effective invoices using BigTime's PDF generator, derived from extensive data and user experiences. The aim is to simplify the invoice to ensure prompt payment.
+
+A well-constructed invoice communicates the owed amount and facilitates easy payment. Complexity in invoices can lead to delays in payment, hence the design should be straightforward:
+
+Header: The invoice header should be concise, occupying no more than a quarter of the page. It must include essential details: the issuer's information, total amount due, the project or work billed, and the payment due date. Avoid cluttering the header with extraneous information that could obscure the due amount and date.
+
+Clarity in Amounts: Ensure that the invoice does not contain multiple ""amount"" or ""due"" labels, which can cause confusion over the actual amount due for the current invoice. Separate past-due amounts from the current amount due to prevent payment delays or requests for invoice clarification.
+
+Invoice Summary: Invoices should start with a one-page summary. This summary should display a clear ""AMOUNT DUE"" section that builds up the total from its components (fees, expenses, taxes, credits, payments) and should be concise, ideally within 5-10 lines. Use color or font-weight to emphasize the amount due and include the preferred payment method.
+
+Payment Issuer's Needs: Recognize that the individual responsible for payment may not be the same person who reviews or approves the invoice. This individual requires only the invoice number, the firm’s name, amount due, and due date to process the payment.
+
+Subsequent Details: Place detailed breakdowns of the invoice on pages following the summary to avoid overwhelming the first page.
+
+Avoid Repetition: Do not repeat the same information, particularly the ""amount due"" value, to prevent confusion for the accounts payable personnel.
+
+The guidelines above help ensure that invoices generated are not only compliant with BigTime’s standards but also optimized for quick payment processing.",407
+Managing Width and Height Specifications for PDF Generation with ASPOSE,2024-04-10T17:00:00Z,"Topic: Managing Width and Height Specifications for PDF Generation with ASPOSE
+
+Content:
+When creating PDF documents for invoices, understanding the measurement units is crucial for accurate presentation. BigTime leverages ASPOSE PDF generator, which operates on an 8.5 x 11 inch page and interprets all size measurements in ""points.""
+
+A key aspect to remember is that within the ASPOSE tool, every width or height value is converted to points, where one point is equivalent to 1/72 of an inch. Thus, there are 72 points in one inch.
+
+Considerations for specifying dimensions in invoice documents are as follows:
+
+Page Margin: By default, page margins are about 1/3 inch, approximately 25 points. This setting ensures a consistent frame for the content.
+
+Page Width: A standard letter-sized page has a full width of 576 points. Accounting for a typical 50 point margin on each side leaves a usable width of 526 points.
+
+Exceeding Width Limit: If a width greater than 576 points is specified, the system will automatically scale the object down to fit within the maximum width, a common occurrence within dataTables.
+
+Vertical Growth: Most elements are designed to expand vertically to accommodate content, making the height attribute less critical. The invoicing engine is optimized to adjust the size of elements based on their content.
+
+Spacing: Instead of setting heights, it's advisable to use margin properties to manage the space between elements effectively.
+
+This guidance ensures that invoice elements are proportionally scaled and correctly positioned on the page, providing a professional and clean layout for PDF invoices generated by BigTime's system.
+",
+Implementing fld Elements for Data Integration in Invoice PDFs,2024-04-10T17:00:00Z,"Topic: Implementing fld Elements for Data Integration in Invoice PDFs
+
+Content:
+The flexibility of BigTime's PDF invoices extends to integrating data-driven objects, which include field lists, data tables, and individual field values. This article focuses on the utilization of the fld object to insert individual field values into an invoice.
+
+An fld object is used to incorporate single data points into a PDF and follows this syntax: {#fld=FieldName:FORMAT}. Here, FieldName represents the exact name of the field from the InvoiceDetail object. For example, {#fld=InvoiceNbr} would display the invoice number, while {#fld=BillingAddress.Zip} shows the customer's zip code.
+
+Formatting Field Values:
+The format clause in the fld element is optional but crucial for date and numeric fields to ensure clarity. For instance, to display the AmountDue as a currency, the format would be {#fld=TotalAmt:$#,##0.00}, which formats the value in US Dollar currency style.
+
+Predefined Formats:
+BigTime provides predefined formats that simplify formatting and ensure consistency. Instead of hard-coding formats, these predefined placeholders automatically apply the necessary formatting:
+
+CURRENCY: Formats values in the base currency of the customer.
+CURRENCY_LONG: Provides a longer decimal representation of currency.
+FORMAT_CURRENCY: Formats numeric values as currency, hiding null values.
+FORMAT_CURRENCY2: Similar to FORMAT_CURRENCY but displays a dash for null values.
+FORMAT_CURRENCY_LONG: A longer decimal format for currency, hiding null values.
+NUMERIC_2: Formats numbers to two decimal places, hiding null values.
+DTFORMAT_2 and DTFORMAT_4: Formats dates in US format, with adaptations for British or Canadian formats.
+These formatters can also be applied in dataTable.fld and fieldList.fld objects, with a specific format attribute for the data.
+
+By using fld objects and predefined formats, invoices become more readable and standardized, facilitating quicker comprehension and processing.",396
+Styling and Formatting Invoice PDFs with CSS in BigTime,2024-04-10T17:00:00Z,"Topic: Detailed Styling and Class Property Guide for Invoice PDF Generation
+
+Content:
+This section of the knowledge base focuses on the formatting attributes available for various elements within invoice PDFs. It's essential to understand the styling options, as most objects in the invoice support style and class properties, leveraging a subset of standard HTML and CSS properties to format text, set up margins and padding, specify element dimensions, and add borders.
+
+Styles and Classes:
+Both style and class properties are supported, with the reporting engine accommodating a selection of HTML CSS classes. However, it does not support all CSS properties—only a specific subset.
+
+Supported CSS:
+The reporting engine supports specific CSS styles, which will be detailed in the following section. When an element contains both style and class attributes, style takes precedence. Use named classes to maintain consistency across multiple elements when the same style combination is used.
+
+Font, Padding, Margin, Border, Width, Height:
+Not all elements support every CSS property. Refer to the documentation for each element to understand which style properties are applicable. Unsupported properties specified for an element will be ignored without causing an exception.
+
+CSS Font/Text Formatting Properties:
+
+font-weight: Accepts ""bold"", ""normal"", ""light"".
+font-size: In pixels, with 8 as the smallest and default of 10.
+font-style: Any standard Windows font like Arial, which is the default.
+color: Sets text color.
+font-decoration: Currently, only ""underline"" is supported.
+line-height: For multi-line elements to specify spacing, typically as a percentage (e.g., line-height:150%).
+CSS Padding Properties:
+
+padding: Applies to all four sides in points.
+padding-x: Applies to one side only, with options like padding-left, padding-right, padding-top, and padding-bottom.
+CSS Margin Properties:
+
+margin: Applies to all four borders in points.
+margin-x: Applies to one border only, with options like margin-left, margin-right, margin-top, and margin-bottom.
+CSS Border Properties:
+
+border-x-style: Supports ""solid"" or ""none"".
+border-x-width: Border width in pixels, typically 1 or 2.
+border-x-color: Border color in hex code, defaulting to black.
+CSS Sizing Properties (Width, Height):
+
+width: In points or percentage (e.g., width:100 or width:100%).
+height: Rarely used except to specify the max height of the btInvoice object.
+Understanding these properties is crucial for anyone tasked with customizing invoice PDFs. By adhering to the supported CSS properties, developers can ensure that invoices maintain visual consistency and professionalism across different clients and uses within the BigTime system.
+
+
+
+
+",539
+The Role and Configuration of the btInvoice Element in BigTime Invoice PDFs,2024-04-10T17:00:00Z,"Topic: The Role and Configuration of the btInvoice Element in BigTime Invoice PDFs
+
+Content:
+The btInvoice element is the foundational object for the BigTime invoice PDF, analogous to the HTML page element. It encapsulates all the elements that constitute the invoice PDF, serving as the base ""wrapper.""
+
+Usage:
+The btInvoice element is used to define the overall structure and orientation of the invoice document. Here is a basic example of its usage:
+
+xml
+Copy code
+<btInvoice orientation=""portrait"" style=""margin:25"">
+    ... [other elements go here] ...
+</btInvoice>
+Attributes:
+
+orientation: Accepts ""landscape"" or ""portrait"" as values. This attribute determines the orientation in which the invoice will be printed. By default, the orientation is set to ""portrait.""
+taxesSplit: When set to TRUE, the display of taxes on the invoice is altered. Further details on this behavior can be found in the InvoicePDFExporter.111 documentation, which should be reviewed for more comprehensive understanding as this attribute requires more elaborate documentation.
+style: This attribute supports CSS values for Margin, Width, and Height, allowing for customization of the invoice layout. Commonly, a margin value is specified to set the page margins for the entire invoice.
+The btInvoice element and its attributes provide a flexible framework for customizing the invoice's appearance and format. Understanding and utilizing these attributes allows for the creation of invoices that adhere to specific layout requirements and branding guidelines while maintaining a professional and clear presentation.",307
+Configuring Page Headers and Footers for Invoices in BigTime,2024-04-10T17:00:00Z,"Topic: Configuring Page Headers and Footers for Invoices in BigTime
+
+Content:
+This article delves into the technical aspects of setting up headers and footers within the XML structure for invoices in BigTime. Headers and footers are critical for providing consistent navigation and reference points across different pages of an invoice.
+
+Headers/Footers Construction:
+Headers and footers can be crafted using core static elements such as p, div, table, or columnSet. To designate an element as a header or footer, assign an ID property from the predefined list. For example, a table set as the page header is illustrated as follows:
+
+xml
+Copy code
+<table id=""InvoicePageHeader"">
+    ...
+</table>
+The system identifies the first element with the ID of InvoicePageHeader and formats it to serve as the page header.
+
+Specifics to Note:
+
+Only the first instance of an element with a specified ID will be recognized as the header or footer.
+These elements can house data, fieldList elements, or dataTable elements but should maintain a fixed height to ensure consistency across pages.
+Page numbers can only be incorporated within footer elements using the syntax $p for the current page number and $P for the total number of pages (e.g., $p of $P).
+Key Header/Footer Elements and Usage:
+
+InvoicePageHeader: Repeats as a header on every page.
+
+Example:
+xml
+Copy code
+<table id=""InvoicePageHeader"">
+    ...
+</table>
+InvoicePage1Header: Appears exclusively on the first page.
+
+Example:
+xml
+Copy code
+<table id=""InvoicePage1Header"">
+    ...
+</table>
+PageFooter: Acts as a footer for the invoice.
+
+Attributes:
+SkipFirstPage: Use this to omit the footer on the first page (skipFirstPage=""true"").
+Example:
+xml
+Copy code
+<div id=""PageFooter"" skipFirstPage=""true"">
+    <p>Page $p</p>
+</div>
+Page1Footer: Specifically for the first page footer.
+
+Note that PageFooter and Page1Footer will not appear on the same page.
+Example:
+xml
+Copy code
+<div id=""Page1Footer"">
+    <p>Page $p</p>
+</div>
+Understanding and utilizing these elements correctly ensures that the invoices generated are not only aesthetically pleasing and consistent but also functionally effective for both the issuer and the recipient.",485
+Implementing Data Tables for Invoice Detailing in BigTime,2024-04-10T17:00:00Z,"Topic: Implementing Data Tables for Invoice Detailing in BigTime
+
+Content:
+This article focuses on the utilization of the DataTable object to present detailed information supporting the invoice’s amount due within BigTime’s PDF generator. The data tables are integral for displaying supplemental data in a structured format and can greatly enhance the clarity of invoices.
+
+Usage of Data Tables:
+DataTables are deployed to exhibit various collections of datasets pertinent to the invoice. The syntax for using a DataTable is illustrated below:
+
+xml
+Copy code
+<dataTable collection=""lines"" showRptTotal=""1"">
+    <heading class=""summary"">INVOICE SUMMARY</heading>
+    <fld label=""Description"">nm</fld>
+    <fld label=""Amount"" style=""width:110;text-align:right;"">Amt</fld>
+</dataTable>
+This exemplar showcases a standard table with two columns: one for the item description (""name"") and another for the amount (""Amt""). A total sum for sum-able columns is also displayed.
+
+Detailed Exploration of DataTable Elements:
+
+collection: A mandatory attribute denoting the dataset for the table. ""lines"" refers to the collection of invoice line items.
+fld: Defines the columns within the table, where the element text represents the actual data.
+label: An attribute within fld to indicate the title of the column.
+style=width:xx: Determines the default width of the column, with the ability to use CSS properties for flexible widths.
+heading: An element to include a repeated heading across pages if the table spans multiple pages.
+Attributes of Data Tables:
+DataTables possess several attributes that influence their format and presentation:
+
+Collection: Specifies the dataset linked to the table.
+showRptTotal: Indicates if a bottom line total should be displayed.
+showSubtotals: Toggles the inclusion of sub-totals based on group attributes.
+group1-3: Allows up to three levels of data grouping.
+Sort1-3: Provides sorting capabilities without grouping.
+rptTotalTitle: Customizes the label for the overall total.
+hideHeader and HideFooterLabel: Controls the visibility of column headings and footer labels.
+style+class: Affects the font, margin, and border style properties.
+tr-style+tr-class: Used for formatting individual rows.
+pageBreak: Manages page breaks around the table.
+hide-if-empty: Hides the dataTable if it has no data.
+ng-show/ng-hide: Conditional rendering of the dataTable based on invoice properties.
+consolidatedGrouping: Adds project grouping for consolidated invoices.
+itemBasedTemplate: Applies data filters based on billing rules.
+By adhering to these guidelines and utilizing the attributes effectively, users can create data tables that convey detailed invoice information efficiently, ensuring clarity and aiding in prompt payment processing.",556
+Detailed Attributes for Customizing <fld> Elements in BigTime Data Tables,2024-04-10T17:00:00Z,"Topic: Detailed Attributes for Customizing <fld> Elements in BigTime Data Tables
+
+Content:
+The <fld> element in BigTime's data tables is versatile, allowing for significant customization through a variety of attributes. These attributes enable users to tailor the presentation of data within invoices. Here is an in-depth look at the attributes available for <fld> elements within a dataTable:
+
+label: This attribute specifies the column title in the data table, serving as a header.
+
+superLabel: For organizing columns into groups, superLabel is used to denote the grouping title. Columns sharing the same superLabel will be grouped under this shared title.
+
+format: While default number and date formatting are applied, this attribute allows for customization of the data format within the column, supporting both system predefined formats and those available in C#.
+
+totalType: If the field represents data that can be aggregated (such as numeric or date values), this attribute determines the type of subtotal to display. Options include “sum”, “avg”, “max”, or “min”.
+
+Flex: This boolean attribute dictates whether a column should adjust its width dynamically. A true value allows the column to expand or contract to fill the available space proportionally with other columns in the table.
+
+style: This is a comprehensive attribute that incorporates sub-properties such as font, padding, border, and width. Each sub-property enhances the control over the presentation of the column.
+
+style.width: To define the width of a column, style=""width:n"" is used, where n is the numerical value in points. The system ensures that if the total width of all columns exceeds the table's width, it will automatically scale down the columns evenly to fit.
+markdown: This boolean attribute indicates whether the field uses a template syntax ({#fld=xxx}) instead of a direct field name. It allows for the combination of multiple fields into a single column and supports simple text formatting. The field names correspond to those in the dataset, not directly to the Invoice object.
+
+hidden: When set to true, this attribute ensures that the field is not displayed on the invoice, allowing for internal data to be kept off the document.
+
+Each attribute is designed to provide specific functionality for the invoice’s data representation, ensuring that the end document is both informative and professionally formatted. By utilizing these attributes effectively, users can create clear, concise, and organized invoices tailored to the needs of both the issuer and the recipient.",485
+Composition of the DataTable Collection: Lines in BigTime Invoice XML,2024-04-10T17:00:00Z,"Topic: Composition of the DataTable Collection: Lines in BigTime Invoice XML
+
+Content:
+Understanding the DataTable Collection: Lines is crucial when working with invoice documents in the BigTime system. This collection is pivotal as it includes all the line items that typically appear on the first page of an invoice, right below the invoice page header. These line items are derived from the IInvoiceLine interface.
+
+Here is an in-depth look at the fields contained within the DataTable Collection: Lines and their respective functionalities:
+
+LineNbr: This is a sequentially sorted number starting from 1, which helps in ordering the line items.
+Nm (Name): Refers to the descriptive name given to the line item.
+Nt (Note): Contains detailed notes associated with the line item, if any.
+Quantity: A numerical value indicating the quantity of the line item.
+Rate: The billing rate applicable to the line item, expressed numerically.
+Amt (Amount): The total monetary value of the line item, calculated numerically.
+BudgetPer: An integer representing the budget period relevant to the line item, formatted as YYYYMM (e.g., 202101).
+IsNonTimeCharge: A boolean indicating whether the line item is an expense (True) or not (False).
+IsCredit: A boolean indicating whether the line item is a credit, which is not included in the total fees of the invoice (True) or not (False).
+LineCatSid: An integer identifier for line items linked to specific terms such as retainers or deposits, with values like 10 for deposit and 20 for retainer.
+LineType: An integer that categorizes the line item, with values such as 50 for expenses, 1 for time, 0 for custom user-added items, and 1005 for items from a custom calculator.
+IsUnpaid: A boolean indicating the unpaid status of the line item (True or False).
+Source: Typically set to 0, this integer field is used internally.
+AcctSid: The unique identifier for the accounting item or account where the line item will be posted.
+AcctSid_nm: The name of the item or account in the General Ledger (GL) system to which the line item posts.
+IsTaxable: A boolean indicating if the line item is taxable, often used in U.S.-based scenarios where sales tax is applied at the invoice level (True or False).
+SalesTaxSid: An integer representing the unique identifier for the tax account associated with the line item, used when taxes are applied at the line-item level (common for Canadian, EU, and UK customers).
+SalesTax_nm: The name of the tax rate attached to the line item, such as ""GST,"" ""HST,"" ""VAT,"" etc., pertinent to CA, UK, and EU customers.
+SalesTax_amt: The total amount of sales tax calculated for this line item.
+SubTotalSID: For invoices calculated with a sub-total (by staff, by task, etc.), this is the identifier for the line item.
+QBClassSid: If integrated with QuickBooks (QB/QBO), this field contains the class SID for each line item.
+QBClass_nm: The name of the class to which the line item is attached if integrated with QB/QBO.
+PrjNm, PrjDName, PrjID: These fields contain the project name, display name, and ID respectively, which are particularly useful for consolidated invoicing to group or sort line items.
+This detailed guide to the DataTable Collection: Lines equips users to understand and manipulate the line items in an invoice document, ensuring accurate representation and categorization within the BigTime system.",737
+Utilizing Custom Attributes to Filter Invoice Line Items,2024-04-10T17:00:00Z,"Topic: Utilizing Custom Attributes to Filter Invoice Line Items
+
+Content:
+In BigTime's invoice system, the DataTable collection named expenseOtherChargeLines | FilteredLines is designed for specificity in invoice line item selection, particularly for ""time detail"" invoice types. This collection provides a mechanism for users to include adjustments, credits, and other modifications. The default configuration retrieves line items with LineType 50 (expenses) or 0 (custom).
+
+Fields:
+The fields within this collection mirror those available in the standard lines collection, maintaining consistency across different invoice types.
+
+Custom Attributes:
+
+LineTypeList:
+
+To customize beyond the default filter, users can define a comma-separated list of line types they wish to include through the LineTypeList attribute. This filter excludes any line items where the LineTypeSid does not match the list.
+CategoryList:
+
+For custom invoice calculations, each line item can be associated with a term, such as ""retainers"" or ""deposits."" The CategoryList allows for the specification of line item term IDs, filtering only the desired categories.
+ShowTypeAndCat:
+
+The default behavior filters out line items that don't match the criteria in both LineTypeList and CategoryList. Setting the ShowTypeAndCat attribute to TRUE changes the filter logic to include line items that meet either the CategoryList or the LineTypeList conditions.
+ng-include:
+
+For filters requiring criteria beyond line type or category, ng-include provides a solution. It enables the inclusion of a formula that evaluates each line item against specific conditions. For instance, the formula ng-include=""LineType=0 AND Amt<0"" includes any line item with LineType=0 and an Amount less than 0.
+Important Note:
+The ng-include attribute has precedence over other custom attributes, meaning it can override any filters set by other attributes within this object.
+
+This sophisticated filtering capability allows for precise control over which line items are included in an invoice, ensuring that only relevant items are displayed and calculated. It’s an essential feature for creating tailored invoices that accurately reflect the nuances of billing for services rendered.",421
+Implementing the salesTaxList Collection in Invoice Design,2024-04-10T17:00:00Z,"Topic: Implementing the salesTaxList Collection in Invoice Design
+
+Content:
+In BigTime's invoice structure, the salesTaxList collection is an integral part that typically appears just after the line items on an invoice's first page, leading up to the ""total amount due"" line. This collection is particularly crucial for invoices subject to sales tax; however, it can be omitted where sales tax does not apply, such as in many US states. In such cases, the default invoices are designed with the salesTaxList dataTable, which is set to hide-if-empty=""true"" to maintain a clean look when no tax is applicable.
+
+Here is an example breakdown of an invoice total:
+
+Professional Fees: $10,000.00
+Expenses: $2,500.00
+Subtotal: $12,500.00
+Illinois State Tax (6.25%): $625.00
+Chicago Use Tax (5%): $500.00
+Total: $13,625.00
+The lines itemized for ""Illinois State Tax"" and ""Chicago Use Tax"" represent the application of different tax rates to the invoice line items. In contrast, the tax systems in Canada and the UK require a more detailed approach, such as different tax rates for separate line items and the consolidation of taxes for specific items. These systems necessitate breaking down the taxes into their components on the invoice.
+
+The salesTaxList dataset contains detailed information on the taxes calculated by the invoice engine:
+
+Fields:
+taxNm: The tax name, e.g., ""Illinois State Tax.""
+taxRt: The tax rate as a percentage, e.g., 6.25%.
+taxAmt: The specific tax amount added, e.g., $625.00.
+taxableAmt: The total amount from the invoice that is subject to tax, e.g., $10,000.00 in professional fees.
+For customers in regions with more complex tax requirements, such as Canada and the UK, it's crucial to understand how the salesTaxList dataset interacts with the reimbursableTaxes dataset, as there may be overlap in data between the two.
+
+The design and implementation of the salesTaxList collection are critical to the clarity and legal compliance of the invoice. Proper formatting and accurate calculation are imperative to ensure that the invoice reflects the correct taxes, facilitating a smooth transaction between businesses and their clients.
+",484
+Implementing reimbursableTaxes DataTable Collection in BigTime Invoice XML,2024-04-10T17:00:00Z,"Topic: Implementing reimbursableTaxes DataTable Collection in BigTime Invoice XML
+
+Content:
+In the BigTime system, the DataTable collection called reimbursableTaxes plays a crucial role for users who need to track taxes paid on reimbursable expenses. This feature is particularly pertinent for a subset of users, notably within Canada or the UK, who handle a large volume of reimbursable expenses and need to reflect these taxes accurately on their invoices.
+
+When reimbursableTaxes is implemented in the invoice XML, it allows for the display of a summarized line item of all reimbursable taxes on the invoice's cover page. Additionally, users have the option to detail taxable amounts on a separate expense detail page. This flexibility caters to different reporting and billing requirements.
+
+The fields within the reimbursableTaxes collection are defined as follows:
+
+taxNm: This field represents the name of the tax rate being applied to the invoice (e.g., ""Illinois State Tax""). It is a text field that identifies the tax for clarity on the invoice.
+
+taxRt: This numeric field specifies the percentage rate at which the tax is calculated. It can be formatted to show either a decimal (e.g., .0625) or a percentage (e.g., 6.25%), depending on the user's preference or regional standards.
+
+taxAmt: This is the actual tax amount added for the type of tax to the invoice. For instance, if the taxRt is 6.25% and is applied to a taxable amount, the taxAmt would reflect the resultant tax figure in dollars and cents.
+
+taxableAmt: This field indicates the total invoice amount subject to the specified tax. In scenarios where taxes are applied selectively (e.g., only to professional fees), the taxableAmt would reflect the total of the selectively taxed invoice items.
+
+This structure is designed to provide transparency in tax calculations on invoices, ensuring that the tax breakdown is both understandable and auditable. It aids in creating an invoice that is compliant with regional tax laws and clear for clients to review and process payments.",421
+Leveraging agingReport and projectAgingReport DataSets for Invoice Clarity,2024-04-10T17:00:00Z,"Topic: Leveraging agingReport and projectAgingReport DataSets for Invoice Clarity
+
+Content:
+This article delves into the advanced use of DataTable collections, specifically the agingReport and projectAgingReport, in BigTime invoices to communicate outstanding balances effectively.
+
+When firms wish to remind customers of previous outstanding invoices, they incorporate the agingReport DataSet into the current invoice. This makes it apparent that the customer's obligation exceeds the current invoice, deterring the assumption that payment of the current invoice settles their account in full.
+
+However, including past-due balances can sometimes lead to payment confusion. To mitigate this, the option to ""show prior balances in total balance due"" is often enabled when using the agingReport. This aggregates previous balances without cluttering the cover page.
+
+For invoices pertaining to specific projects, especially when billing various departments within the same firm, the projectAgingReport is more suitable. It lists only the outstanding invoices related to the specific project being billed, preventing cross-project confusion.
+
+Custom Attributes:
+
+ShowOverallARTotal: When set to TRUE, this adds the sum of all previous unpaid invoices to the ""balance due"" in the invoice summary. It's crucial to ensure the invoice's total remains unchanged to avoid presenting multiple due amounts.
+projectOnlyAR: This works in tandem with ShowOverallARTotal to ensure that the ""past due"" amount reflects only the arrears pertinent to the project for which the invoice is issued.
+These custom attributes, while listed under the agingReport collection, are typically associated with the table object displaying past balance and payment history. They can also be applied to the lines collection with the same effect.
+
+Fields:
+
+ClientNm to DaysOutstanding: These fields capture the detailed information of each outstanding invoice, such as client name, invoice number, dates associated with the invoice, amounts, and payment status.
+Consolidated: Indicates whether the invoice is a consolidated one.
+LastPaymentAmt, LastPaymentDate, and LastPaymentType: Provide details on the most recent payments for partially paid invoices.
+The fields TotalAmt and TotalAmtDue appear to be placeholders for total amounts that might require further context or clarification within the invoice.
+The use of these fields and custom attributes in the DataTable collection can significantly enhance the clarity and precision of invoices, especially when dealing with complex billing scenarios. It's essential to apply these elements thoughtfully to maintain simplicity and avoid any potential confusion for the customer.",485
+Effective Use of Budget Status in Progress and Milestone Invoices,2024-04-10T17:00:00Z,"Topic: Effective Use of Budget Status in Progress and Milestone Invoices
+
+Content:
+For invoices that are tethered to a fixed budget, such as those for progress billing or milestone achievements, it's a common practice to include a budget status summary. This summary is crucial for firms to present a transparent account of the overall project budget, the amount previously billed, the current billings, and the budget remaining, with each invoice iteration.
+
+The budgets dataTable collection is crucial in this aspect. It derives from the tasks associated with the invoiced project. The following custom attributes are particularly important as they provide flexibility in how this budget data is presented:
+
+excludeArchivedTasks: When set to true, this attribute excludes tasks that are marked as 100% complete and have no billings in the current invoice. This keeps the focus on relevant tasks.
+
+excludeUnbilledTasks: If the aim is to display only the tasks that are being billed in the current invoice cycle, setting this attribute to true will filter the tasks accordingly.
+
+excludeTasksWithoutBudgets: To display only those tasks that have an allocated fee or expense budget, this attribute should be set to true. This is particularly useful for invoices concerning projects with mixed-billing requirements.
+
+taskView: This attribute enables subtotaling of tasks based on their grouping within the task list. The taskView can be set to various values such as flat, grouponly, or taskgroup, depending on the desired presentation of tasks within the invoice.
+
+It is also noted that including both the budgets collection and the lines collection (which may show redundant information) on the same invoice is not recommended due to the potential confusion it may cause to the end customer. It's advisable to use one or the other to maintain clarity.
+
+This level of customization in presenting budget information is designed to meet diverse billing practices and to ensure clarity in communication with the client regarding the financial status of the project.",384
+Utilizing DataTable Collections for Time Entry Details on Invoices,2024-04-10T17:00:00Z,"Topic: Utilizing DataTable Collections for Time Entry Details on Invoices
+
+Content:
+Incorporating a detailed list of time entries on an invoice is a common request from customers using BigTime's invoicing system. To fulfill this, a dataTable for the time dataSet should be added to the invoice's XML format.
+
+The time dataSet can include any field that is available in the 'Timesheet Detail' report type. Here's a guide on how to leverage these fields:
+
+Identifying Fields:
+
+Begin by creating a custom 'Timesheet Detail' report within BigTime. This process is outlined in another section of the document, which provides instructions for creating and reviewing custom reports.
+Once the custom report is generated, you will be able to view all the fields that can be included in the time dataSet for your invoice.
+Using API to Retrieve Field Names:
+
+To use the fields in your invoice dataTable, employ the API to pull the field names from your custom 'Timesheet Detail' report.
+With the field names obtained, you can integrate them into your invoice format, ensuring that your invoice displays all necessary time entry details.
+Custom Attributes:
+
+excludeNoChargeItems: By setting this attribute to TRUE, you can filter out any time entries marked as “no charge” from your invoice's time entry list.
+itemBasedTemplate: When set to TRUE, this attribute will exclude time entries associated with fixed-fee type tasks from the dataset.
+In summary, the dataTable collection for time provides a customizable approach to presenting time entry data on invoices. By following the steps to create a custom report and using the API to fetch field names, you can tailor the time entry details to your specific billing requirements, ensuring your invoices are both informative and tailored to the billing needs of your projects.",352
+Utilizing the DataTable Collection for Expenses in BigTime Invoices,2024-04-10T17:00:00Z,"Topic: Utilizing the DataTable Collection for Expenses in BigTime Invoices
+
+Content:
+The integration of expense data into invoices is a frequent requirement from customers who wish to include all expenses related to the current invoice. This is achieved by embedding a dataTable for the expenses dataset within the invoice XML format.
+
+When incorporating expense data, any field from an expense detail report can be utilized. This vast selection is not listed exhaustively in this document; instead, we provide a method to identify and use these field names effectively:
+
+Field Identification:
+
+Report Type: To determine which fields are available for inclusion, you must create a custom report using the 'Expense Detail' report type. Detailed instructions for creating and reviewing custom reports are provided elsewhere in this documentation.
+API Usage: Once the custom expense detail report is configured, you can use the BigTime API to extract the field names from that report. These field names are then used within your invoice's dataTable.
+Custom Attributes:
+
+excludeNoChargeItems: By setting this attribute to TRUE, you can exclude any entries labeled as ""no charge"" from the invoice's list of entries. This ensures that only billable expenses are displayed.
+itemBasedTemplate: This attribute, when set to TRUE, will omit entries linked to fixed-fee type tasks from the dataset. This is useful for invoices that should only reflect variable expenses.
+The above approach allows for a high degree of customization when it comes to displaying expenses on invoices, ensuring that the data presented is both relevant and tailored to specific billing requirements.
+
+The technical details provided here are critical to implementing a customized invoice format that includes comprehensive expense data, facilitating a clear and detailed billing document for the client.
+",335
+Integrating Time and Expense Details in Invoices Using Transaction Lists,2024-04-10T17:00:00Z,"Topic: Integrating Time and Expense Details in Invoices Using Transaction Lists
+
+Content:
+The capability to combine both time and expense details on a single invoice is a significant efficiency for BigTime users. Instead of generating two separate dataTable objects for time and expense, the system allows for a combined ""transaction"" list.
+
+Structure and Grouping:
+This combined list, or 'transaction type' dataset, is typically grouped first by the transaction type, distinguishing between total fees and total expenses, and then by other categories. The flexibility of this approach means users can tailor the dataset to their specific needs.
+
+Field Names and Report Types:
+Users can utilize any field from the transaction detail report type within this dataSet. However, to maintain the document's focus, all possible fields are not listed here. Instead, the document will guide users on how to view field names for a custom transaction detail report and extract those field names using the API. This method ensures that the most relevant and up-to-date fields are used in the invoice dataTable.
+
+Custom Report Creation:
+For custom reports, users should select the Time+Expense Detail report type. Detailed instructions on creating and reviewing custom reports are provided in another section of the document. These instructions are crucial for understanding which fields can be included in the dataSet.
+
+Custom Attributes:
+There are specific attributes users can set to refine the data included in the dataTable:
+
+excludeNoChargeItems: When set to TRUE, this attribute excludes any entries labeled ""no charge"" from the displayed list on the invoice.
+itemBasedTemplate: When set to TRUE, this attribute will exclude entries linked to fixed-fee type tasks from the resulting dataset.
+These attributes help ensure the data presented in the invoice is precisely what the user intends, allowing for clear and concise invoicing that facilitates easy payment processing and reflects the work done accurately.",363
+Implementing Summarized Time Reporting via DataTable Collections in Invoices,2024-04-10T17:00:00Z,"Topic: Implementing Summarized Time Reporting via DataTable Collections in Invoices
+
+Content:
+The BigTime system allows firms to display time on invoices in a summarized form through the use of the DataTable collection named timesummary. This feature is particularly useful for firms that prefer a consolidated view of time data rather than a detailed enumeration.
+
+When opting for a summarized time report on an invoice, BigTime leverages the comprehensive set of fields available in its reporting engine. To explore the fields applicable for this dataset, the user is directed to a resource that outlines the process of creating and reviewing custom reports. This resource is crucial for understanding the extent of customization available for the timesummary dataset. Users should select the 'Timesheet Summary' report type when aligning custom reports with this dataset.
+
+Additionally, the timesummary dataset can be configured with custom attributes to refine the data displayed:
+
+excludeNoChargeItems: By setting this attribute to TRUE, any time entries marked as “no charge” are omitted from the summary on the invoice. This attribute is critical for ensuring that only billable time is summarized and presented to the client.
+
+itemBasedTemplate: This attribute, when set to TRUE, excludes time associated with fixed-fee tasks from the summary. It allows firms to tailor the summarized data further, ensuring that the invoice reflects the most relevant and chargeable time entries.
+
+These custom attributes provide firms with the flexibility to present their time data in a way that aligns with their billing practices and client expectations. The summarized view enabled by the timesummary collection not only streamlines the information presented on the invoice but also aids in clear communication of billable time to the client.",335
+Utilizing DataTable Collections for Summarized Expense Reporting on Invoices,2024-04-10T17:00:00Z,"Topic: Utilizing DataTable Collections for Summarized Expense Reporting on Invoices
+
+Content:
+In BigTime's invoicing system, there is functionality that allows firms to display summarized expenses on invoices. The expenseSummary DataTable Collection is specifically designed for this purpose. This collection provides a summarized view of expenses rather than a detailed account, which can be preferable for certain invoices.
+
+To implement a summarized expense report on an invoice, firms can utilize various fields from the reporting engine. These fields allow for a customizable summary that fits the firm's specific reporting needs. Rather than enumerating all potential fields here, firms are encouraged to explore the reporting engine. By following the instructions for creating and reviewing custom reports found elsewhere in the document, users can gain an understanding of which fields can be incorporated into the expenseSummary dataSet.
+
+Fields:
+
+Report Type: Select ""Expense Summary"" when creating custom reports to view and choose the fields available for inclusion within the expenseSummary dataSet.
+Custom Attributes:
+
+excludeNoChargeItems: When set to TRUE, this attribute will filter out any expenses marked as “no charge” from the summary on the invoice. This allows firms to only show chargeable expenses, keeping the summary relevant to the receivable amounts.
+itemBasedTemplate: This attribute, when set to TRUE, ensures that the summary excludes expenses related to fixed-fee type tasks. This is particularly useful for firms that need to differentiate between variable expenses and fixed costs for clarity on the invoice.
+By leveraging these settings, firms can tailor the expense information presented on an invoice to provide a clear and concise summary. This approach can enhance the readability of the invoice, making it easier for clients to understand and process the charges.",336
+Utilizing the transactionsummary DataTable Collection in Invoices,2024-04-10T17:00:00Z,"Topic: Utilizing the transactionsummary DataTable Collection in Invoices
+
+Content:
+The transactionsummary collection in BigTime's invoice templates allows firms to display summarized time and expenses, providing a high-level view of billable items. This collection is especially useful for firms that prefer summarization over detailed line item reports.
+
+To configure this summary view, one can leverage the same fields available in BigTime's reporting engine. While this document does not list every field, users can explore the available fields for this particular dataset by following a guide linked below, which details how to create and review custom reports. To align custom reports with this summary, select the ""Time+Expense Summary"" report type.
+
+Additionally, there are custom attributes available that can refine what is included in the summary:
+
+excludeNoChargeItems: When set to TRUE, this attribute omits any time or expense entries marked as ""no charge"" from the invoice summary.
+
+itemBasedTemplate: When set to TRUE, this attribute ensures that time and expense entries associated with fixed-fee tasks are not included in the summary.
+
+These attributes are instrumental in customizing the invoice summary to meet specific requirements, ensuring clarity and precision on the invoice presented to the client.",241
+Extracting Field Names for Invoice DataSets from Custom Reports in BigTime,2024-04-10T17:00:00Z,"Topic: Extracting Field Names for Invoice DataSets from Custom Reports in BigTime
+
+Content:
+The flexibility of BigTime's reporting engine allows for the inclusion of any supported field within your invoice dataSets. To identify and utilize specific field names in your invoice dataSet, follow these detailed steps:
+
+Creating a Custom Report:
+
+Start by creating a custom report and ensure you select the proper report type.
+Add the columns that you want to appear in your invoice report. It's important to focus on the columns, as the invoicing engine will handle the data rows, filters, groupings, and subtotals when generating each invoice.
+Identifying the Report's URL:
+
+After creating the report, take note of its URL, which contains the report's unique system ID.
+For instance, in a URL like https://iq.bigtime.net/Bigtime/Report2#/detail/88, the number 88 is the report's system ID.
+Utilizing the API Documentation:
+
+Navigate to the BigTime API documentation.
+Input the endpoint report/detail/{systemId}, replacing {systemId} with the actual ID, into the REST test URL box provided at the documentation's page bottom.
+Retrieving the JSON Definition:
+
+Executing the above will return the JSON definition of your custom report.
+Within this JSON, you'll find entries for each column, complete with a ""name"" field that corresponds to the field names usable in your invoice dataTable.
+For example, if your custom report includes time-related data, your JSON result should display field names like tmprojectnm and tmstaffnm. These can then be incorporated into your invoice dataTable that uses 'time' as its dataset, as shown below:
+
+xml
+Copy code
+<dataTable collection=""time"" showRptTotal=""1"" sort1=""TMDt"">
+    <heading style="""" class=""TitleFont HeaderTitle"">TIME DETAILS</heading>
+    <fld label=""Date"" style=""width:99;text-align:right;"">TMDt</fld>
+    <fld label=""Project"" style=""width:110;"">tmprojectnm</fld>
+    <fld label=""Consultant"" style=""width:130"">tmstaffnm</fld>
+    <fld label=""Description"">TMNotes</fld>
+    <fld label=""Hours"" style=""width:88;text-align:right;"">TMHrsBill2</fld>
+    <fld label=""Rate"" style=""width:90;text-align:right;"">TMBillRate</fld>
+    <fld label=""Amount"" style=""width:110;text-align:right;"">TMChgBill</fld>
+</dataTable>
+Following these instructions will enable you to accurately pull field names for use in your invoice templates, ensuring that your invoices include all necessary details from your custom reports.",563
+Integration of Static HTML Elements for Invoice Customization,2024-04-10T17:00:00Z,"Topic: Integration of Static HTML Elements for Invoice Customization
+
+Content:
+Within BigTime's invoice PDF generation functionality, static HTML elements are pivotal for creating a customized and professional-looking invoice. While not all HTML elements are supported, the following are the core components permitted:
+
+Paragraph (<p>) Tags:
+These tags are used to create text elements within the invoice. They are particularly useful for inserting firm details, such as the 'from' address. The <p> tags can be formatted individually, for example, making certain text bold. Here's an example of how <p> tags are employed:
+
+html
+Copy code
+<td id=""BillToAddress"" style=""padding-top:20;padding-bottom:20"">
+   <p style=""font-weight:bold;"">{#fld=BillingAddress.CoNm}</p>
+   <p>{#fld=BillingAddress.FullAddress}</p>
+</td>
+In this code snippet, two paragraph tags are filled with specific field values, with the first paragraph being formatted to bold. It is common practice to use <p> tags inside other tags to avoid whitespace in the final document, where each <p> tag corresponds to one line of text.
+
+Attributes:
+
+ng-show: This attribute utilizes invoice field properties in a formula to conditionally display an element if the formula evaluates to true.
+ng-hide: Conversely, this attribute uses field properties to display an element only if the formula evaluates to false.
+style+class: The system supports both these attributes, consuming InvoicePdf styles like font, margin, underline, and line-height.
+Division (<div>) Tags:
+The <div> tag is used for formatting full-width blocks of text or data and can contain child elements, unlike <p> tags. Here is an example of how <div> tags can be structured:
+
+html
+Copy code
+<div id=""PleaseNote1"" style=""margin-right:30; margin-left:20; font-size:9"" class=""pline"">
+   <b>PLEASE NOTE:</b> 
+   <p>Past due invoices shall be assessed a late charge of 5 percent.</p>
+   <div style=""text-align:center; margin-top:10;"">Thank You.</div>
+</div>
+The example illustrates a <div> tag used in an invoice's footer to present important information neatly. The nested <p> tags and a subsequent <div> are used to add spacing and format specific lines differently.
+
+Attributes:
+
+ng-show and ng-hide: These function similarly as described for <p> tags, controlling visibility based on invoice field values.
+style+class: These attributes allow for a broader range of styling options, including padding, border, margin, font, and width.
+By incorporating these static elements into invoice designs, users can merge invoice data dynamically and format documents to meet various presentation requirements while maintaining a clear and professional layout.",577
+Effective Use of <table> Tags in BigTime Invoice PDF Generation,2024-04-10T17:00:00Z,"Topic: Effective Use of <table> Tags in BigTime Invoice PDF Generation
+
+Content:
+In BigTime invoice PDFs, <table> tags are essential elements used to organize data into structured columns and rows. Tables are full-sized components crucial for presenting complex information systematically. Here's an in-depth look at how tables function within the invoicing engine:
+
+Column and Row Behavior: Columns have a fixed width, while rows expand to fit the contents of each cell. This structure is pivotal in maintaining a clean layout regardless of the content length.
+
+Table Formatting Specifics:
+
+Unlike HTML, the invoicing engine condenses all spaces and line breaks inside a tag. To maintain code readability without adding extra spaces in the output, enclose each line of code within <p> tags.
+Style attributes cascade from the table to the cells. However, attributes such as borders, padding, and width/height specifications do not cascade and must be applied directly to the intended elements.
+By default, a table added to an invoice PDF spans the entire width of its parent element. This can be adjusted using margin and width style properties to alter the default behavior.
+Attributes and Styles:
+
+ng-show and ng-hide attributes allow conditional display of data tables based on the evaluation of invoice field properties. For example, setting ng-show=""InvoiceNbr='123'"" will display the table only if the invoice number matches ""123"".
+The style+class attribute accepts both style and class declarations. A table element will consume InvoicePdf styles such as margin, font cascade, border, and width. Font properties set at the table level will cascade through all table rows (<tr>) and data cells (<td>), unless a child element's style attribute overrides it.
+Table Rows and Data Cells:
+
+Row (<tr>): (Content about styles specific to table rows seems to be missing and should be provided here.)
+Data Cell (<td>): Cells can span multiple columns using the Colspan attribute. Style and class attributes are supported, affecting properties like border, font, padding, line-height, and alignment. These styles will automatically cascade to the first-level sub-elements, such as <p> tags.
+This detailed explanation of the <table> tags in the invoicing engine demonstrates the importance of understanding the underlying structure to create well-formatted and easy-to-read invoice PDFs. Correct usage of these tags ensures invoices are clear, professional, and conducive to prompt payment.
+",484
+Mastery of <columnset> Elements for Efficient Invoice Layouts,2024-04-10T17:00:00Z,"Topic: Mastery of <columnset> Elements for Efficient Invoice Layouts
+
+Content:
+This article delves into the technical use of <columnset> elements within BigTime's invoice PDF generation. The <columnset> element is instrumental in creating a tabular structure where horizontal space is divided equally among columns.
+
+Consider the following example, which demonstrates a <columnset> with three evenly spaced columns and a padding of 20 pixels between them:
+
+xml
+Copy code
+<columnset spacing=""20"">
+   <column id=""1"">
+      <p>The information in this section will automatically wrap if it's 
+         too wide for the column</p>
+   </column>
+   <column id=""2"">
+      <p>No matter how data is distributed</p>
+   </column>
+   <column id=""3"">
+      <p>it always shows 3 columns</p>
+   </column>
+</columnset>
+In practice, the <columnset> element is frequently utilized in standard invoices, particularly for invoice headers where addresses and field values are often placed side by side.
+
+Attributes Overview:
+
+ng-show: This attribute allows the display of a <dataTable> based on the evaluation of a formula using invoice properties. For example, setting ng-show=""InvoiceNbr='123'"" will only display the <dataTable> if the invoice number is 123.
+ng-hide: This works conversely to ng-show, where the <dataTable> is displayed only if the formula evaluates to false.
+style+class: The system accepts both attributes simultaneously. This element can adopt InvoicePdf styles for attributes like margin.
+spacing: This attribute adds space between columns to ensure content is adequately separated, particularly if the content expands beyond the column width.
+Attributes Specific to <column> Elements:
+
+style+class: Similarly to the <columnset>, individual <column> elements can utilize InvoicePdf styles, influencing font, padding, border, and margin attributes.
+The <columnset> and <column> elements are crucial for creating a structured and aesthetically pleasing invoice layout. Their proper use ensures that the information is not only presented clearly but also maintains a professional look that aligns with best practices for efficient invoice processing.
+",449
+Enhancing Invoice PDFs with Image Elements and Attribute Customization,2024-04-10T17:00:00Z,"Topic: Enhancing Invoice PDFs with Image Elements and Attribute Customization
+
+Content:
+This article delves into the specifics of adding images to invoice PDFs and manipulating their attributes for proper integration within the BigTime PDF generator.
+
+Using <img> Elements:
+The <img> tag is essential for embedding images into the PDF. An example of its application is to include the firm's logo on the invoice. Below is the code snippet illustrating how to insert a logo and constrain its width to 75 points, ensuring the image's height scales proportionately.
+
+xml
+Copy code
+<img src=""CO_LOGO"" style=""width:75"" />
+This inclusion enhances the professional appearance of the invoice and aids in brand recognition.
+
+Understanding Attributes:
+Here's a breakdown of the attributes that can be used with the <img> tag:
+
+src: Specifies the image source to be merged into the document. Commonly, this is the firm’s print logo, referenced as CO_LOGO. For custom invoice templates where a unique image is uploaded, Template would be used instead.
+ng-show: Integrates with Invoice (fld) properties, allowing the display of the <img> element when a specified condition evaluates to true. For instance, setting ng-show=""InvoiceNbr='123'"" would display the image only for the invoice number ""123"".
+ng-hide: Contrary to ng-show, this attribute ensures that the <img> element is visible when a specified condition evaluates to false.
+style+class: The system acknowledges both style and class attributes. An <img> element can adopt InvoicePdf styles, including but not limited to width, height, border, and margin.
+These details are vital for creating a tailored and visually consistent invoice. Users can leverage these tags and attributes to ensure that their invoices not only convey the necessary information but also maintain the firm's branding and professional standards.",377
+Topic: Utilizing Dynamic Elements for Customized Invoice Data Representation,2024-04-10T17:00:00Z,"Topic: Utilizing Dynamic Elements for Customized Invoice Data Representation
+
+Content:
+In BigTime's invoice template customization, dynamic elements are crucial for adding data-driven, adaptable content that changes based on the attached invoice data. They render this data in a default format, similar to the dataTable element, but their presentation can be extensively customized through attributes and styles.
+
+Unlike standard HTML elements, these dynamic elements are more like composite structures, combining tables, divs, and p tags to present data consistently across different invoices.
+
+<vFieldList> Element:
+The vFieldList is a dynamic element that presents a vertical list of invoice fields as ""Label: Value"" pairs. It's commonly used for displaying additional information on an invoice. For instance, it can present details like the invoice date, number, and tax ID in a structured format. Here’s an example:
+
+xml
+Copy code
+<vFieldList style=""width:140;"" 
+            labelStyle=""text-align:left;padding-bottom:4;"" 
+            valueStyle=""text-align:right;font-weight:bold;padding-bottom:4;"">
+    <fld label=""Invoice Date:"" format=""DTFORMAT_2"">InvoiceDt</fld>
+    <fld label=""Invoice Number:"">InvoiceNbr</fld>
+    <fld label=""Tax ID:"" istext=""true"">XX-1234567</fld>
+</vFieldList>
+This vFieldList applies distinct formatting for labels and values, adds padding for clarity, and allows the integration of hard-coded text alongside dynamic invoice properties.
+
+Attributes:
+Attributes like ng-show and ng-hide use invoice properties to conditionally display the dataTable based on the truthiness of a given formula. The style+class attribute allows the incorporation of InvoicePdf styles such as padding, border, and margin, while label-style and value-style apply specific styles to labels and values within the field list. Font styles can cascade into values/labels unless overridden by child element style settings.
+
+Attributes (fieldList.fld elements):
+The style+class attribute for fieldList.fld elements also supports InvoicePdf styles. The label attribute affixes a text label to the field value, which is formatted using the value-style attribute of the fieldList element. The isText attribute can be set to TRUE if the fld tag's value is text rather than a field property. The format attribute allows for custom formatting of specific values, supporting both system-defined and C# supported formats.
+
+By utilizing these dynamic elements and attributes, BigTime invoice templates can be tailored to display data clearly and flexibly, ensuring that each invoice is as informative and readable as possible.",527
+Integrating Expense Receipts Using ImageList Collection in BigTime Invoice PDFs,2024-04-10T17:00:00Z,"Topic: Integrating Expense Receipts Using ImageList Collection in BigTime Invoice PDFs
+
+Content:
+This article delves into the technical integration of expense receipts into invoice PDFs using the imageList collection within BigTime's invoicing system. The imageList collection is specifically designed for incorporating attached receipts relevant to each invoice, enhancing the detail and transparency of expense reporting.
+
+Attributes of the imageList Collection:
+
+collection: This attribute is set to Receipts to specify the collection of expense receipts.
+
+pageBreak: Determines whether a new page is started before or after the imageList element. The settings include before, after, and none.
+
+imagesPerPage: Configures the number of images per page. This also determines the layout of these images, whether square or elongated, to accommodate different receipt dimensions. The supported values are:
+
+2 (also known as twoup or 2up)
+2l (twolong)
+4 (fourup, 4u)
+3 (3l, threelong)
+6 (6u, sixup)
+1 (1up, one)
+The 'up' setting divides the page vertically, suitable for wide receipts, while 'long' splits the page horizontally, apt for longer receipts.
+
+sort: Defines the sequence in which receipts are displayed. Options include:
+
+ProjectNameDateDesc
+ProjectNameDateAsc
+DateOnlyDesc
+DateOnlyAsc
+CopyExpenseSort
+StaffName
+StaffTitle
+LaborCode
+Task
+TaskGroup
+Amount
+Rate
+ng-show: Utilizes invoice field (fld) properties within a formula to conditionally display the dataTable if the formula evaluates to true. For example, setting InvoiceNbr=""123"" will only show the dataTable if the invoice number is ""123"".
+
+ng-hide: Conversely, this uses invoice field properties within a formula to hide the dataTable if the formula evaluates to false.
+
+style+class: The element accepts both style and class attributes, applying InvoicePdf styles such as font and padding. This allows for a consistent and professional presentation of the receipts within the invoice document.
+
+The technical details outlined ensure that the receipts are merged seamlessly and presented in a manner that supports easy review and verification, contributing to the overall efficiency of the invoicing process.
+",448
+Incorporating Project User-Defined Fields (UDFs) into Invoices,2024-04-10T17:00:00Z,"Topic: Incorporating User-Defined Fields (UDFs) into Invoices
+
+Content:
+This article explains the procedure for adding User-Defined Fields (UDFs) from projects into the invoice PDFs generated by BigTime's invoicing system. UDFs are custom fields that can be created under the project details tab to tailor information specific to each project.
+
+To include these UDFs in an invoice PDF, users must undertake the following steps:
+
+Create UDFs: First, ensure that the necessary UDFs are established within the project details tab.
+
+Access Invoice Configuration: Navigate to the 'Invoicing -> Configure -> PDF Styles' menu within BigTime.
+
+Modify Invoice Template: Select the appropriate invoice template that needs to include the UDFs.
+
+Edit XML Structure: In the invoice's XML format, locate the collection=""lines"" section where the UDFs will be integrated.
+
+Insert UDFs: Add the required UDFs within <fld></fld> tags. The UDFs should be named consistently with the convention used under the project details tab, ensuring that any spaces in the text are omitted.
+
+By following these steps, the UDFs will be successfully integrated into the invoice PDF, allowing for customized invoicing that caters to the specifics of each project or job.
+
+Example XML Snippet:
+
+xml
+Copy code
+<dataTable collection=""lines"">
+   <!-- Other line item fields here -->
+   <fld>{#fld=ProjectDetails.YourUDFName}</fld>
+   <!-- Continue with other line items or fields -->
+</dataTable>
+Note: Replace YourUDFName with the actual name of your UDF, removing spaces as required.",

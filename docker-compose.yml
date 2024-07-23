@@ -1,0 +1,49 @@
+version: '3.9'
+
+services:
+  chat-bt:
+    build:
+      context: "."
+      dockerfile: "Dockerfile.dev"
+    container_name: chat-bt-api
+    depends_on: ["mongo"]
+    networks: ["backend"]
+    environment:
+      RUN_MODE: "local"
+      FLASK_DEBUG: 1
+      CONN_STRING: "mongodb://admin:pass@mongo:27017/?authSource=admin"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://host.docker.internal:4317"
+      OTEL_RESOURCE_ATTRIBUTES: "service.namespace=Develop"
+      OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+      OTEL_SERVICE_NAME: "BigTime.ChatBT"
+      # SERVICE_NAMESPACE: "Develop"
+      OTEL_TRACING_ENABLED: "true"
+    ports:
+      - 5001:5000
+    volumes:
+      - ./app:/src/app:rw
+      - ./run.py:/src/run.py:rw
+      - ./config.py:/src/config.py:rw
+      - ./.env.local:/src/.env.local:ro 
+
+  mongo:
+    image: mongo:6
+    container_name: chatbt-mongo
+    restart: unless-stopped
+    ports:
+      - 127.0.0.1:27017:27017
+    volumes:
+      - mongodb-data:/data/db
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+    environment:
+      RUN_MODE: "local"
+      MONGO_INITDB_ROOT_USERNAME: "admin"
+      MONGO_INITDB_ROOT_PASSWORD: "pass"
+    networks:
+      - backend
+
+volumes:
+  mongodb-data:
+
+networks:
+  backend:
