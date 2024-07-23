@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { Autocomplete, Card, CardContent, CardHeader, Checkbox, Dialog, DialogContent, DialogProps, DialogTitle, FormControlLabel, LinearProgress, TextField } from '@mui/material';
 import RiskAssessment from '../RiskAssessment';
 import ProjectTimeline from '../ProjectTimeline';
@@ -11,9 +11,11 @@ import walletLogo from '../../assets/wallet-graphic.svg';
 import ameliaLogo from '../../assets/amelia-watson.svg';
 import ameryLogo from '../../assets/amery-west.svg';
 import sparkle from '../../assets/sparkle.svg';
+import { AppContext } from '../../App';
 
 const NET_TERMS_OPTIONS = ['Net 7', 'Net 15', 'Net 30', 'Net 45'];
 const REMINDER_OPTIONS = ['1 day before', '2 days before', '1 week before', '2 weeks before'];
+const OVERTIME_AMT = 10456.76;
 
 type PaymentDelayRiskDialogProps = DialogProps & {
    showDunningStatus: boolean;
@@ -22,6 +24,12 @@ type PaymentDelayRiskDialogProps = DialogProps & {
 
 const PaymentDelayRiskDialog: React.FC<PaymentDelayRiskDialogProps> = props => {
    const [actionTaken, setActionTaken] = React.useState<DunningType | undefined>();
+
+   const { invoices } = useContext(AppContext);
+
+   const totalInvoicesAmount = React.useMemo(() => invoices.reduce((acc, i) => acc + i.Amt, 0), [invoices]);
+   
+   const totalAmt = React.useMemo(() => totalInvoicesAmount + OVERTIME_AMT, [totalInvoicesAmount]);
 
    const onClickAssign = React.useCallback((type: DunningType) => {
       setActionTaken(type);
@@ -57,7 +65,7 @@ const PaymentDelayRiskDialog: React.FC<PaymentDelayRiskDialogProps> = props => {
                <section>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                      <div>
-                        <h3 style={{ margin: 0, fontSize: '22px' }}>Aging Invoice Payment Delays & Staff Overtime</h3>
+                        <h3 style={{ margin: 0, fontSize: '22px' }}>Aging Invoice Payment Delays</h3>
                         <p style={{ color: '#616161' }}>Innovatech - Data Cloud Storage</p>
                      </div>
                      <button style={{ backgroundColor: '#DAE8F7', color: '#1F74CE', padding: '0.5em 0.75em', border: '1px solid #B4D1EF', borderRadius: '5px', fontFamily: 'inherit', fontWeight: '700', cursor: 'pointer' }}>
@@ -70,7 +78,7 @@ const PaymentDelayRiskDialog: React.FC<PaymentDelayRiskDialogProps> = props => {
 
                <section style={{ marginTop: '1em' }}>
                   <p style={{ width: '720px' }}>
-                     There are currently 3 overdue invoices with an outstanding balance of <strong>$72,981.15.</strong> This will result 
+                     There are currently 3 overdue invoices with an outstanding balance of <strong>${totalAmt.toLocaleString()}.</strong> This will result 
                      in an <span style={{ color: '#DC2F18' }}>at-risk cash flow</span> if no action is taken.
                   </p>
                </section>
@@ -114,6 +122,14 @@ type DunningEmailCardProps = {
 
 const DunningEmailCard: React.FC<DunningEmailCardProps> = props => {
 
+   const { invoices } = useContext(AppContext);
+
+   const sortedInvoices = React.useMemo(() => invoices.sort((a, b) => {
+      return new Date(a.Dt_Due).getTime() - new Date(b.Dt_Due).getTime();
+   }), [invoices]);
+
+   const totalInvoicesAmount = React.useMemo(() => sortedInvoices.reduce((acc, i) => acc + i.Amt, 0), [sortedInvoices]);
+
    return (
       <Card>
          <CardHeader 
@@ -129,12 +145,12 @@ const DunningEmailCard: React.FC<DunningEmailCardProps> = props => {
          />
          <CardContent>
             <section>
-               There are 3 outstanding invoices with significant balances from Innovatech. <strong>On average, this 
+               There are {invoices.length} outstanding invoices with significant balances from Innovatech. <strong>On average, this 
                client has paid 36% of invoices 32 days late over the past 6 months</strong>, making them a high risk client. 
             </section>
 
             <section style={{ marginTop: '1em' }}>
-               <div style={{ display: 'grid', gridTemplateColumns: '1fr 3fr 1fr 1.25fr 1fr 1fr 1fr 1fr 1fr 1fr', borderBottom: '1px solid #E6E6E6', fontSize: '12px', padding: '0.5em', alignItems: 'center' }}>
+               <div style={{ display: 'grid', gridTemplateColumns: '1fr 3fr 1fr 1.25fr 1.25fr 1fr 1fr 1fr 1fr 1fr', borderBottom: '1px solid #E6E6E6', fontSize: '12px', padding: '0.5em', alignItems: 'center' }}>
                   <img src={dunningEmailLogo} style={{ border: '1px solid #CCCCCC', borderRadius: '50%' }} />
                   <div>
                      <strong style={{ fontSize: '16px' }}>Innovatech</strong>
@@ -145,14 +161,14 @@ const DunningEmailCard: React.FC<DunningEmailCardProps> = props => {
                      }
                   </div>
                   <div style={{ color: '#1F74CE' }}>#16789</div>
-                  <div>$15,678.23</div>
-                  <div>6/15/24</div>
+                  <div>${sortedInvoices[0].Amt.toLocaleString()}</div>
+                  <div>{sortedInvoices[0].Dt_Due.toLocaleDateString()}</div>
                   <div style={{ display: 'inline-flex', gap: '0.25em' }}>
                      <span style={{ color: '#B50C00', fontSize: '16px' }}>3</span> <PendingActionsOutlined style={{ fontSize: '20px', color: '#616161' }} />
                   </div>
                   <div>
                      <strong>Overdue</strong>
-                     <strong style={{ display: 'block', color: '#B50C00' }}>39 days</strong>
+                     <strong style={{ display: 'block', color: '#B50C00' }}>{Math.floor((Date.parse(new Date().toUTCString()) - Date.parse(sortedInvoices[0].Dt_Due.toUTCString())) / 86400000)} days</strong>
                   </div>
                   <ReceiptLongOutlined style={{ color: '#616161' }} />
                   {
@@ -171,21 +187,21 @@ const DunningEmailCard: React.FC<DunningEmailCardProps> = props => {
                      }
                   </button>
                </div>
-               <div style={{ display: 'grid', gridTemplateColumns: '1fr 3fr 1fr 1.25fr 1fr 1fr 1fr 1fr 1fr 1fr', borderBottom: '1px solid #E6E6E6', fontSize: '12px', padding: '0.5em', alignItems: 'center' }}>
+               <div style={{ display: 'grid', gridTemplateColumns: '1fr 3fr 1fr 1.25fr 1.25fr 1fr 1fr 1fr 1fr 1fr', borderBottom: '1px solid #E6E6E6', fontSize: '12px', padding: '0.5em', alignItems: 'center' }}>
                   <img src={dunningEmailLogo} style={{ border: '1px solid #CCCCCC', borderRadius: '50%' }} />
                   <div>
                      <strong style={{ fontSize: '16px' }}>Innovatech</strong>
                      <div style={{ fontSize: '12px' }}>Phase 2 - Cloud Migration</div>
                   </div>
                   <div style={{ color: '#1F74CE' }}>#47629</div>
-                  <div>$11,679.00</div>
-                  <div>7/15/24</div>
+                  <div>${sortedInvoices[1].Amt.toLocaleString()}</div>
+                  <div>{sortedInvoices[1].Dt_Due.toLocaleDateString()}</div>
                   <div style={{ display: 'inline-flex', gap: '0.25em' }}>
                      <span style={{ color: '#E67E00', fontSize: '16px' }}>2</span> <PendingActionsOutlined style={{ fontSize: '20px', color: '#616161' }} />
                   </div>
                   <div>
                      <strong>Overdue</strong>
-                     <strong style={{ display: 'block', color: '#E67E00' }}>9 days</strong>
+                     <strong style={{ display: 'block', color: '#E67E00' }}>{Math.floor((Date.parse(new Date().toUTCString()) - Date.parse(sortedInvoices[1].Dt_Due.toUTCString())) / 86400000)} days</strong>
                   </div>
                   <ReceiptLongOutlined style={{ color: '#616161' }} />
                   <div></div>
@@ -196,21 +212,21 @@ const DunningEmailCard: React.FC<DunningEmailCardProps> = props => {
                      <GroupAddOutlined style={{ color: '#1F74CE', marginRight: '0.25em', fontSize: '16px' }} /> Assign
                   </button>
                </div>
-               <div style={{ display: 'grid', gridTemplateColumns: '1fr 3fr 1fr 1.25fr 1fr 1fr 1fr 1fr 1fr 1fr', borderBottom: '1px solid #E6E6E6', fontSize: '12px', padding: '0.5em', alignItems: 'center' }}>
+               <div style={{ display: 'grid', gridTemplateColumns: '1fr 3fr 1fr 1.25fr 1.25fr 1fr 1fr 1fr 1fr 1fr', borderBottom: '1px solid #E6E6E6', fontSize: '12px', padding: '0.5em', alignItems: 'center' }}>
                   <img src={dunningEmailLogo} style={{ border: '1px solid #CCCCCC', borderRadius: '50%' }} />
                   <div>
                      <strong style={{ fontSize: '16px' }}>Innovatech</strong>
                      <div style={{ fontSize: '12px' }}>Phase 3 - Implementation</div>
                   </div>
                   <div style={{ color: '#1F74CE' }}>#89370</div>
-                  <div>$35,167.16</div>
-                  <div>7/16/24</div>
+                  <div>${sortedInvoices[2].Amt.toLocaleString()}</div>
+                  <div>{sortedInvoices[2].Dt_Due.toLocaleDateString()}</div>
                   <div style={{ display: 'inline-flex', gap: '0.25em' }}>
                      <span style={{ color: '#E67E00', fontSize: '16px' }}>2</span> <PendingActionsOutlined style={{ fontSize: '20px', color: '#616161' }} />
                   </div>
                   <div>
                      <strong>Overdue</strong>
-                     <strong style={{ display: 'block', color: '#E67E00' }}>8 days</strong>
+                     <strong style={{ display: 'block', color: '#E67E00' }}>{Math.floor((Date.parse(new Date().toUTCString()) - Date.parse(sortedInvoices[2].Dt_Due.toUTCString())) / 86400000)} days</strong>
                   </div>
                   <ReceiptLongOutlined style={{ color: '#616161' }} />
                   <div></div>
@@ -224,7 +240,7 @@ const DunningEmailCard: React.FC<DunningEmailCardProps> = props => {
             </section>
 
             <section style={{ fontSize: '16px', marginTop: '1em' }}>
-               <strong>Outstanding Balance:</strong> <span style={{ color: '#B50C00' }}> - $62,524.39</span>
+               <strong>Outstanding Balance:</strong> <span style={{ color: '#B50C00' }}> - ${totalInvoicesAmount.toLocaleString()}</span>
             </section>
          </CardContent>
       </Card>

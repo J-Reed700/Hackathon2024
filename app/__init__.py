@@ -2,6 +2,7 @@ from app.services.pinecone_service import PineconeService
 from flask import Flask, jsonify, Response, session, g, request
 from flask_session import Session
 from pymongo import MongoClient
+from flask_cors import CORS
 from .chat.chat_repo import ChatRepo
 from .services.mongo_service import MongoService  
 import os
@@ -12,9 +13,9 @@ def create_app(test_config=None, pinecone_service=None, mongo_client=None):
     app = Flask(__name__)
     intrumentation.setup_opentelemetry(app)
 
-    #CORS(app, origins= "http://localhost:64551", supports_credentials= True)
+    CORS(app, origins= "http://localhost:5173/", supports_credentials= True)
 
-    #app.config['CORS_HEADERS'] = 'Content-Type'
+    app.config['CORS_HEADERS'] = 'Content-Type'
 
     
     # Initialize PineconeService and MongoClient and attach to app

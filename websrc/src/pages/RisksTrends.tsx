@@ -12,13 +12,13 @@ import Card from '../components/Card';
 import PaymentDelayRiskDialog from '../components/PaymentDelayRiskDialog';
 import RisksTable from '../components/RisksTable';
 import RiskDetectionSettingsDialog from '../components/RiskDetectionSettingsDialog';
+import { AppContext } from '../App';
+import StaffingRiskDialog from '../components/StaffingRiskDialog';
+import { CircularProgress } from '@mui/material';
 
 import '../risks-trends.css';
 
 import settings from '../assets/settings.svg';
-import { AppContext } from '../App';
-import StaffingRiskDialog from '../components/StaffingRiskDialog';
-
 
 enum TabValue {
   Risks = 'Risks',
@@ -31,8 +31,21 @@ const RisksTrends: React.FC = () => {
   const [openStaffingRiskDialog, setOpenStaffingRiskDialog] = React.useState<boolean>(false);
   const [openRiskDetectionSettings, setOpenRiskDetectionSettings] = React.useState<boolean>(false);
   const [showDunningStatus, setShowDunningStatus] = React.useState<boolean>(false);
+  const [fetching, setFetching] = React.useState<boolean>(true);
 
-  const firm = useContext(AppContext);
+  React.useEffect(() => {
+    const timeout = setTimeout(() => {
+       setFetching(false);
+    }, 2000);
+
+    return () => clearTimeout(timeout);
+ }, []);
+
+  const { firm, stats } = useContext(AppContext);
+
+  const topRisk = React.useMemo(() => stats[0]?.analysis || '', [stats]);
+
+  const topTrend = React.useMemo(() => stats[1]?.analysis || '', [stats]);
 
   const currentDate = React.useMemo(() => new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).format(new Date()), []);
 
@@ -92,10 +105,12 @@ const RisksTrends: React.FC = () => {
           icon={<RequestQuoteOutlinedIcon style={{ color: '#DC2F18', fontSize: '32px' }} />}
         >
           <div style={{ display: 'flex', gap: '1em', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-            <div style={{ maxWidth: '300px' }}>
+            <div style={{ maxWidth: '370px' }}>
               {
                 firm === 'Acme Consulting' 
-                  ? <><strong>The Innovatech Data Cloud Storage project is now high risk</strong> due to ongoing invoice payment delays and staff overtime.</> 
+                  ? !topRisk || fetching 
+                    ? <CircularProgress /> 
+                    : <>{topRisk}</>
                   : <><strong>The timeline for the Server Rebuild project extended by two weeks</strong> and is missing staff to finish the project.</>
               }
             </div>
@@ -108,10 +123,12 @@ const RisksTrends: React.FC = () => {
           icon={<WorkspacePremiumOutlinedIcon style={{ color: '#00BDCA', fontSize: '32px' }} />}
         >
           <div style={{ display: 'flex', gap: '1em', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-            <div style={{ maxWidth: '300px' }}>
+            <div style={{ maxWidth: '370px' }}>
               {
                 firm === 'Acme Consulting' 
-                  ? <><strong>Nexus Solutions</strong> is your highest profit vendor this year, due to on-time payments and contractor speed.</> 
+                  ? !topTrend || fetching 
+                    ? <CircularProgress /> 
+                    : <>{topTrend}</>
                   : <><strong>Firm-Wide Utilization Rates</strong> are trending above 95% for the past 30 days, a 15% improvement from last quarter.</>
               }
             </div>

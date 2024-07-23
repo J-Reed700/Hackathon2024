@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from decimal import Decimal
 from datetime import date, datetime
+from typing import Optional
 
 class Staff(BaseModel):
     staff_sid: int
@@ -62,36 +63,61 @@ class Time(BaseModel):
         )
 
 class Invoice(BaseModel):
-    invoice_sid: int
-    client_sid: int
-    dt_sent: date
-    amt: Decimal
-    project_sid: int
-    dt_due: date
-    amt_pd: Decimal
-    invoice_status: str
-    review_status: str
+    InvoiceSID: int
+    ClientSID: int
+    Dt_sent: Optional[datetime]
+    Amt: Decimal
+    ProjectSID: int
+    Dt_Due: datetime
+    AmtPd: Decimal
+    InvoiceStatus: str
+    ReviewStatus: int
 
     def __init__(self, **data):
         super().__init__(**data)
-        # Add any custom initialization logic here if needed
-        self.amt = round(self.amt, 2)
-        self.amt_pd = round(self.amt_pd, 2)
+        self.Amt = round(self.Amt, 2)
+        self.AmtPd = round(self.AmtPd, 2)
 
     @classmethod
     def from_dict(cls, data: dict):
         return cls(
-            invoice_sid=int(data['invoice_sid']),
-            client_sid=int(data['client_sid']),
-            dt_sent=date.fromisoformat(data['dt_sent']) if isinstance(data['dt_sent'], str) else data['dt_sent'],
-            amt=Decimal(data['amt']),
-            project_sid=int(data['project_sid']),
-            dt_due=date.fromisoformat(data['dt_due']) if isinstance(data['dt_due'], str) else data['dt_due'],
-            amt_pd=Decimal(data['amt_pd']),
-            invoice_status=data['invoice_status'],
-            review_status=data['review_status']
+            InvoiceSID=int(data['InvoiceSID']),
+            ClientSID=int(data['ClientSID']),
+            Dt_sent=datetime.strptime(data['Dt_sent'], '%m/%d/%Y %H:%M') if data['Dt_sent'] else None,
+            Amt=Decimal(str(data['Amt'])),
+            ProjectSID=int(data['ProjectSID']),
+            Dt_Due=datetime.strptime(data['Dt_Due'], '%m/%d/%Y %H:%M'),
+            AmtPd=Decimal(str(data['AmtPd'])),
+            InvoiceStatus=data['InvoiceStatus'],
+            ReviewStatus=int(data['ReviewStatus'])
         )
 
+    @classmethod
+    def from_row(cls, row):
+        return cls(
+            InvoiceSID=int(row[0]),
+            ClientSID=int(row[1]),
+            Dt_sent=datetime.strptime(row[2], '%m/%d/%Y %H:%M') if row[2] else None,
+            Amt=Decimal(str(row[3])),
+            ProjectSID=int(row[4]),
+            Dt_Due=datetime.strptime(row[5], '%m/%d/%Y %H:%M') if isinstance(row[5], str) else row[5],
+            AmtPd=Decimal(str(row[6])),
+            InvoiceStatus=row[7],
+            ReviewStatus=int(row[8])
+        )
+    def to_dict(self):
+        return {
+            'InvoiceSID': self.InvoiceSID,
+            'ClientSID': self.ClientSID,
+            'Dt_sent': self.Dt_sent.isoformat() if self.Dt_sent else None,
+            'Amt': float(self.Amt),
+            'ProjectSID': self.ProjectSID,
+            'Dt_Due': self.Dt_Due.isoformat(),
+            'AmtPd': float(self.AmtPd),
+            'InvoiceStatus': self.InvoiceStatus,
+            'ReviewStatus': self.ReviewStatus
+        }
+    
 class Project(BaseModel):
     sid: int
     client_sid: int

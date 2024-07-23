@@ -5,7 +5,7 @@ import os
 class Config:
     FLASK_ENV = 'development'
     DEBUG = False
-    OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '') 
+    OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')
     CLAUDE_API_KEY = os.environ.get('CLAUDE_API_KEY', '') 
     PINECONE_API_KEY = os.environ.get('PINECONE_API_KEY', '') 
     GROQ_API_KEY = os.environ.get('GROQ_API_KEY', '')
