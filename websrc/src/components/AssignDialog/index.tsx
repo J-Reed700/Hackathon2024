@@ -14,7 +14,7 @@ import justineLogo from '../../assets/justine-comados.svg';
 import mailSparkle from '../../assets/mail-sparkle.svg';
 import settings from '../../assets/settings.svg';
 import sparkle from '../../assets/sparkle.svg';
-import voiceFlow from '../../assets/vista-voice-flow.mp4';
+import voiceFlow from '../../assets/voice-flow.mp4';
 import SettingsDialog from '../SettingsDialog';
 
 const LOADING_TIME = 2500;
