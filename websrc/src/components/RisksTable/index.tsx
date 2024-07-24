@@ -3,13 +3,13 @@ import GroupAddOutlinedIcon from '@mui/icons-material/GroupAddOutlined';
 import KeyboardArrowDownOutlinedIcon from '@mui/icons-material/KeyboardArrowDownOutlined';
 import PaymentDelayRiskDialog from '../PaymentDelayRiskDialog';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
-import { Chip, IconButton, LinearProgress } from '@mui/material';
+import { Chip, CircularProgress, IconButton, LinearProgress } from '@mui/material';
 import { DataGrid, GridColDef, GridRenderCellParams, GridRowParams } from '@mui/x-data-grid';
 import React, { useContext } from 'react';
-
-import sparkle from '../../assets/sparkle.svg';
 import StaffingRiskDialog from '../StaffingRiskDialog';
 import { AppContext } from '../../App';
+
+import sparkle from '../../assets/sparkle.svg';
 
 type Priority = 'High' | 'Medium' | 'Low';
 
@@ -33,8 +33,17 @@ type RisksTableProps = {
 
 const RisksTable: React.FC<RisksTableProps> = props => {
    const [clickedRow, setClickedRow] = React.useState<Row>();
+   const [fetching, setFetching] = React.useState<boolean>(true);
 
-   const firm = useContext(AppContext);
+   const { firm } = useContext(AppContext);
+
+   React.useEffect(() => {
+      const timeout = setTimeout(() => {
+         setFetching(false);
+      }, 2000);
+
+      return () => clearTimeout(timeout);
+   }, []);
 
    const onRowClick = React.useCallback((row: Row) => {
       setClickedRow(row);
@@ -188,25 +197,33 @@ const RisksTable: React.FC<RisksTableProps> = props => {
 
    return (
       <>
-         <DataGrid 
-            rows={rows}
-            columns={columns}
-            isCellEditable={() => false}
-            onRowClick={(params: GridRowParams<Row>) => onRowClick(params.row)}
-            sx={{ fontFamily: 'inherit', fontSize: '12px' }}
-            slotProps={{ row: { style: { backgroundColor: 'white' } }}}
-            rowHeight={60}
-         />
-         <PaymentDelayRiskDialog
-            open={clickedRow?.id === 0}
-            onClose={handleClose}
-            showDunningStatus={props.showDunningStatus}
-            setShowDunningStatus={props.setShowDunningStatus}
-         />
-         <StaffingRiskDialog
-            open={clickedRow?.id === 1}
-            onClose={handleClose}
-         />
+         {
+            fetching 
+               ? <CircularProgress /> 
+               : (
+                  <>
+                     <DataGrid 
+                        rows={rows}
+                        columns={columns}
+                        isCellEditable={() => false}
+                        onRowClick={(params: GridRowParams<Row>) => onRowClick(params.row)}
+                        sx={{ fontFamily: 'inherit', fontSize: '12px' }}
+                        slotProps={{ row: { style: { backgroundColor: 'white' } }}}
+                        rowHeight={60}
+                     />
+                     <PaymentDelayRiskDialog
+                        open={clickedRow?.id === 0}
+                        onClose={handleClose}
+                        showDunningStatus={props.showDunningStatus}
+                        setShowDunningStatus={props.setShowDunningStatus}
+                     />
+                     <StaffingRiskDialog
+                        open={clickedRow?.id === 1}
+                        onClose={handleClose}
+                     />
+                  </>
+               )
+         }
       </>
    );
 }

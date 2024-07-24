@@ -7,22 +7,12 @@ Given the following invoice dataset:
 - ProjectName: 
 - ClientName: 
 
-Please take this step by step and perform the following analysis to yourself, do not share your process just show the details:
-1. Identify all invoices that are overdue, where 'Dt_Due' is before today's date and the 'RemainingBalance' is greater than zero.
-2. Summarize the total remaining balance across all overdue invoices to understand the financial impact.
-3. Analyze the frequency and distribution of overdue invoices by 'ProjectName' and 'ClientName' to detect any patterns or consistent issues with particular projects or clients.
-4. Provide recommendations on actions to be taken for recovery of overdue payments and suggestions for improving invoicing processes to reduce future occurrences of overdue payments.
+Provide a brief summary.
 
-Provide a detailed summary of your findings with actionable insights based on the analysis.
+Your response should be just one part. A general response like the below (THIS IS JUST AN EXAMPLE, DO NOT USE THIS WORD FOR WORD):
 
-You are responsible for showing the results. Just the results. Your response should just be something like below. Be specific on what clients and projects are impacted. 
-Show numbers, like you are displaying a risk assessment.
+"The Innovatech Data Cloud Storage project is now high risk due to ongoing invoice payment delays and staff overtime." Add a
 
-For example show a high level issue like:
-
-"The Innovatech Data Cloud Storage project is now high risk due to ongoing invoice payment delays and staff overtime."
-
-Then extrapolate on that with the invoices, their total amount due, etc.
     """
 
 def invoice_data_question(data):
@@ -33,6 +23,17 @@ def invoice_data_question(data):
 
     Data: {data}
 
+    """
+
+def most_profitable_prompt():
+    return f"""
+
+    You are responsible for letting the user know which of their companies are most profitable. 
+    You are going to recieve a simple result set with one row. I want you to just summarize and display the results like:
+
+    "Nexus Solutions is your highest profit vendor this year, due to on-time payments and contractor speed."
+
+    Also add the total amount.
     """
 
 def orchestrator_system_prompt():

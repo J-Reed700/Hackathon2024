@@ -2,6 +2,8 @@ import json
 from opentelemetry import trace
 import duckdb
 from .models.response_models import Staff, Invoice, Client, Project, Time, OverdueInvoice, StafferTimeOnOverdueInvoice
+from flask import current_app
+from tabulate import tabulate
 
 tracer = trace.get_tracer(__name__)
 
@@ -16,13 +18,15 @@ class DuckDBRepo:
     # ================================
 
     
-    def query_invoice(self, as_df: bool):
+    def query_invoice(self, project_sid, as_df: bool):
         with tracer.start_as_current_span("Agent.invoicing") as span:
             if as_df:
-                df = self.con.execute("SELECT * FROM tblInvoice").df()
+                df = self.con.execute(f"""SELECT * FROM tblInvoice
+                                      where ProjectSID = {project_sid}""").df()
                 return df.to_string(index=False)
             else:
-                result = self.con.execute("SELECT * FROM tblInvoice").fetchall()
+                result = self.con.execute(f"""SELECT * FROM tblInvoice
+                                      where ProjectSID = {project_sid}""").fetchall()
                 return [Invoice.from_row(row) for row in result]
 
     def query_staff(self, as_df: bool):
@@ -65,31 +69,93 @@ class DuckDBRepo:
     # ================================ 
 
     def overdue_invoices(self, as_df: bool):
-        with tracer.start_as_current_span("Agent.overdue_invoices") as span:
-            df = self.con.execute(f"""SELECT i.InvoiceSID,
-                                        	i.Amt - ISNULL(i.AmtPd, 0) AS RemainingBalance,
-                                        	i.Dt_Due,
-                                        	p.ProjectName,
-                                        	c.ClientName
+        try:
+            with tracer.start_as_current_span("Agent.overdue_invoices") as span:
+                current_app.logger.info("Executing query")
+                df = self.con.sql(f"""WITH project_summary AS (
+                                        SELECT 
+                                            p.SID,
+                                            p.ProjectName,
+                                            c.ClientName,
+                                            SUM(i.Amt - IFNULL(i.AmtPd, 0)) AS TotalRemainingBalance,
+                                            COUNT(*) AS InvoiceCount
                                         FROM tblInvoice AS i
                                         JOIN tblProject AS p ON i.ProjectSID = p.SID
                                         JOIN tblClient AS c ON p.ClientSID = c.SID
-                                        WHERE i.Dt_Due < GETDATE()
-                                        	AND i.InvoiceStatus NOT IN ('Paid', 'Cancelled')
-                                        	AND (i.Amt > ISNULL(i.AmtPd, 0))
-                                        ORDER BY ProjectName;"""
-                                ).df()
-            if(as_df):
-                return df.to_string(index=False) 
-            return [OverdueInvoice.from_dict(row) for row in df.to_dict('records')]
-            
+                                        WHERE strptime(i.Dt_Due, '%m/%d/%Y %H:%M') < current_date
+                                            AND i.InvoiceStatus NOT IN ('Paid', 'Cancelled')
+                                            AND (i.Amt > IFNULL(i.AmtPd, 0))
+                                        GROUP BY p.SID, p.ProjectName, c.ClientName
+                                    )
+                                    SELECT 
+                                        ProjectName,
+                                        ClientName,
+                                        TotalRemainingBalance,
+                                        InvoiceCount,
+                                    FROM project_summary
+                                    ORDER BY TotalRemainingBalance DESC
+                                    LIMIT 1"""
+                                    )
+                current_app.logger.info("overdue_invoices")
+                if as_df:
+                    fetched = df.fetchall()
+                    current_app.logger.info("fetched")
+                    # Get column names
+                    column_names = df.columns
+                    # Create table with column names
+                    table_string = tabulate(fetched, headers=column_names, tablefmt="grid")
+                    return table_string
+                current_app.logger.info("Query executed")
+                return [OverdueInvoice.from_dict(row) for row in df.df().to_dict('records')]
+        except Exception as e:
+            current_app.logger.error(f"Error in pulse_check: {str(e)}", exc_info=True)
+            raise     
+
+    def most_profitable(self, as_df: bool):
+        try:
+            with tracer.start_as_current_span("Agent.overdue_invoices") as span:
+                current_app.logger.info("Executing query")
+                df = self.con.sql(f"""SELECT 
+                                        c.ClientName,
+                                        p.ProjectName,
+                                        SUM(i.Amt) AS TotalInvoiceAmount
+                                    FROM 
+                                        tblInvoice AS i
+                                    JOIN 
+                                        tblProject AS p ON i.ProjectSID = p.SID
+                                    JOIN 
+                                        tblClient AS c ON p.ClientSID = c.SID
+                                    WHERE 
+                                        i.InvoiceStatus IN ('Paid')
+                                    AND i.Amt = i.AmtPd
+                                    GROUP BY 
+                                        c.ClientName, p.ProjectName
+                                    ORDER BY 
+                                        TotalInvoiceAmount DESC
+                                    LIMIT 1"""
+                                    )
+                current_app.logger.info("overdue_invoices")
+                if as_df:
+                    fetched = df.fetchall()
+                    current_app.logger.info("fetched")
+                    # Get column names
+                    column_names = df.columns
+                    # Create table with column names
+                    table_string = tabulate(fetched, headers=column_names, tablefmt="grid")
+                    return table_string
+                current_app.logger.info("Query executed")
+                return [OverdueInvoice.from_dict(row) for row in df.df().to_dict('records')]
+        except Exception as e:
+            current_app.logger.error(f"Error in pulse_check: {str(e)}", exc_info=True)
+            raise   
+
     def staffer_time_on_overdue_invoices(self, as_df: bool):
         with tracer.start_as_current_span("Agent.staffer_time_overdue_invoices") as span:
-            df = self.con.execute(f"""SELECT t.InvoiceSID,
+            df = self.con.sql(f"""SELECT t.InvoiceSID,
                                         	SUM(t.HrsIN) TotalHoursInput,
                                         	SUM(t.HrsBill) TotalHoursBilled,
-                                        	CONVERT(smallmoney, SUM(t.ChargeBill)) TotalChargesBilled,
-                                        	CONVERT(smallmoney, SUM(t.ChargeIN)) TotalChargesInput,
+                                        	CAST(SUM(t.ChargeBill) AS DECIMAL(10,2)) TotalChargesBilled,
+                                        	CAST(SUM(t.ChargeIN) AS DECIMAL(10,2)) TotalChargesInput,
                                         	s.FirstName,
                                         	s.LastName,
                                         	s.JobTitle,
@@ -98,10 +164,10 @@ class DuckDBRepo:
                                         JOIN tblStaff AS s ON t.StaffSID = s.StaffSID
                                         WHERE t.InvoiceSID IN (
                                         		SELECT i.InvoiceSID
-                                        		FROM #ObInvoice AS i
-                                        		WHERE i.Dt_Due < GETDATE()
+                                        		FROM tblInvoice AS i
+                                                WHERE strptime(i.Dt_Due, '%m/%d/%Y %H:%M') < current_date
                                         			AND i.InvoiceStatus NOT IN ('Paid/Closed')
-                                        			AND (i.Amt > ISNULL(i.AmtPd, 0))
+                                        			AND (i.Amt > IFNULL(i.AmtPd, 0))
                                         		)
                                         GROUP BY t.InvoiceSID,
                                         	s.FirstName,
@@ -109,9 +175,12 @@ class DuckDBRepo:
                                         	s.JobTitle,
                                         	s.Capacity
                                         ORDER BY FirstName,
-                                        	LastName""").df()
+                                        	LastName""")
             if(as_df):
-                return df.to_string(index=False) 
+                fetched = df.fetchall()
+                current_app.logger.info("fetched")
+                table_string = tabulate(fetched, headers=["result"], tablefmt="grid")
+                return table_string
             return [StafferTimeOnOverdueInvoice.from_dict(row) for row in df.to_dict('records')]
         
     def staffer_time(self, as_df: bool):

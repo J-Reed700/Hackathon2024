@@ -5,7 +5,7 @@ from .report_completions_generator import ReportCompletionsGenerator
 from .agent_service import AgentService
 from opentelemetry import trace
 from .models.agent_response import AgentResponse
-import asyncio
+from flask import current_app
 
 tracer = trace.get_tracer(__name__)
 
@@ -15,15 +15,24 @@ class Orchestrator:
          self.agent_service = agent_service
          pass
 
-    async def pulse_check(self) -> list[AgentResponse]:
-        with tracer.start_as_current_span("Orchestrator.process_query") as span:   
-            agent_response_list = []
-            invoicing_result, time_management_result = await asyncio.gather(
-                self.agent_service.invoicing(),
-                self.agent_service.time_management()
-            )          
-            
-            agent_response_list.append(invoicing_result)
-            agent_response_list.append( time_management_result)
+    def pulse_check(self) -> list[AgentResponse]:
+        try:
+            with tracer.start_as_current_span("Orchestrator.process_query") as span:   
+                agent_response_list = []
+                invoicing_result = self.agent_service.invoicing()
+                time_management_results = self.agent_service.profitable()         
+                agent_response_list.append(invoicing_result)
+                agent_response_list.append( time_management_results)
 
-            return agent_response_list
+                return agent_response_list
+        except Exception as e:
+            current_app.logger.error(f"Error in pulse_check: {str(e)}", exc_info=True)
+            raise    
+
+    def get_invoices(self):
+        try:
+            invoices = self.agent_service.get_invoices()
+            return invoices
+        except Exception as e:
+            current_app.logger.error(f"Error in pulse_check: {str(e)}", exc_info=True)
+            raise  
